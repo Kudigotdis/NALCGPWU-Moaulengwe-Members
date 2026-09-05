@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NALCGPWU Mokaulengwe Digital Worker Welfare Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container" id="appContainer">
+
+        <!-- Header -->
+        <div class="app-header">
+            <div class="header-left">
+                <img src="Assets/logo/mokaulengwe_logo.jpg" alt="Mokaulengwe Logo" class="app-logo">
+            </div>
+            <div class="status-badge">
+                <span class="status-dot" id="statusDot"></span>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+
+            <!-- TAB 1: TIMELINE / FEED -->
+            <div class="tab-page active" id="tab-timeline">
+                <div class="alert alert-info">
+                    📢 General Meeting Update - Cluster offices will remain open during the election period
+                </div>
+
+                <div class="feed-card">
+                    <img class="feed-image" src="Assets/timeline_feed_images/Complete_Family_Protection-Mokaulengwe-Insurance.jpg" alt="Mokaulengwe Insurance">
+                    <div class="feed-content">
+                        <div class="feed-title">Complete Family Protection</div>
+                        <div class="feed-description">Cover your immediate family from as little as P 130.00 per month (P 30.00 union subscription + P 100.00 for funeral)</div>
+                        <div class="feed-actions">
+                            <button class="action-btn" onclick="switchTab(2)">Learn More</button>
+                            <button class="action-btn whatsapp" onclick="whatsappShare('mokaulengwe', 'Check out NALCGPWU Mokaulengwe Insurance - protect your family today!')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-card">
+                    <img class="feed-image" src="Assets/timeline_feed_images/Emergency_Funds_Available-Union-Loan-Scheme.png" alt="Union Loan Scheme">
+                    <div class="feed-content">
+                        <div class="feed-title">Emergency Funds Available</div>
+                        <div class="feed-description">Quick access loans for emergency situations. Check your eligibility based on payroll deductions.</div>
+                        <div class="feed-actions">
+                            <button class="action-btn" onclick="switchTab(3)">Check Eligibility</button>
+                            <button class="action-btn whatsapp" onclick="whatsappShare('loan', 'Interested in NALCGPWU member loans. Need more info?')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-card">
+                    <img class="feed-image" src="Assets/timeline_feed_images/What_We_Stand_For-Our-Values.jpg" alt="Our Values">
+                    <div class="feed-content">
+                        <div class="feed-title">What We Stand For</div>
+                        <div class="feed-description">Honesty • Respect • Unity • Efficiency • Discipline • Commitment to Excellence • Transparency</div>
+                        <div class="feed-actions">
+                            <button class="action-btn" onclick="switchTab(4); setTimeout(function(){ document.getElementById('valuesSection').scrollIntoView(); }, 120);">Read More</button>
+                            <button class="action-btn whatsapp" onclick="whatsappShare('values', 'NALCGPWU Core Values guide our mission to serve workers')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-card">
+                    <img class="feed-image" src="Assets/timeline_feed_images/memeber_benefits-What-You-Get.webp" alt="Member Benefits">
+                    <div class="feed-content">
+                        <div class="feed-title">What You Get</div>
+                        <div class="feed-description">• Funeral Insurance (P 40,000-P 60,000)<br>• Casket & Groceries<br>• Loan Scheme Access<br>• Legal Support<br>• Healthcare Advocacy</div>
+                        <div class="feed-actions">
+                            <button class="action-btn" onclick="openModal('benefits-modal')">Details</button>
+                            <button class="action-btn whatsapp" onclick="whatsappShare('benefits', 'Check NALCGPWU member benefits!')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: NOTICES & GOVERNANCE -->
+            <div class="tab-page" id="tab-notices">
+                <div class="form-group">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search articles and notices..." id="searchInput" onkeyup="searchArticles()">
+                        <button class="btn btn-secondary btn-small" onclick="searchArticles()">Go</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Notice Board</div>
+                    <div id="noticesList"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">News & Articles</div>
+                    <div id="articlesContainer"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: BENEFITS & PAYMENT -->
+            <div class="tab-page" id="tab-benefits">
+                <div class="stat-box">
+                    <div class="stat-value" id="coverageStat">P 40,000 Natural / P 60,000 Accidental</div>
+                    <div class="stat-label">Main Member Funeral Cover</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Digital Policy Card</div>
+                    <div id="policyCard"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Benefit Structure</div>
+                    <table class="benefit-table">
+                        <tr>
+                            <th>Category</th>
+                            <th>Natural Death</th>
+                            <th>Accidental</th>
+                        </tr>
+                        <tr>
+                            <td>Main Member</td>
+                            <td>P 40,000</td>
+                            <td>P 60,000</td>
+                        </tr>
+                        <tr>
+                            <td>Spouse</td>
+                            <td>P 40,000</td>
+                            <td>P 60,000</td>
+                        </tr>
+                        <tr>
+                            <td>Child (16-21)</td>
+                            <td>P 40,000</td>
+                            <td>N/A</td>
+                        </tr>
+                        <tr>
+                            <td>Child (6-15)</td>
+                            <td>P 30,000</td>
+                            <td>N/A</td>
+                        </tr>
+                        <tr>
+                            <td>Child (Under 6)</td>
+                            <td>P 15,000</td>
+                            <td>N/A</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Premium Calculator</div>
+                    <div class="form-group">
+                        <label class="form-label">Coverage Tier</label>
+                        <select id="coverTier" onchange="calculatePremium()">
+                            <option value="5000">P 5,000 Cover - P 10-24/mo</option>
+                            <option value="10000">P 10,000 Cover - P 20-49/mo</option>
+                            <option value="15000">P 15,000 Cover - P 30-73/mo</option>
+                            <option value="20000">P 20,000 Cover - P 40-97/mo</option>
+                            <option value="25000">P 25,000 Cover - P 50-122/mo</option>
+                            <option value="30000">P 30,000 Cover - P 61-146/mo</option>
+                            <option value="40000" selected>P 40,000 Cover - P 81-195/mo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Age Band</label>
+                        <select id="ageBand" onchange="calculatePremium()">
+                            <option value="low">40 Years & Below</option>
+                            <option value="mid">41 to 75 Years</option>
+                            <option value="high">76 - 80 Years</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="slider-label">
+                            <span>Family Members to Cover</span>
+                            <span id="familyCount">1</span>
+                        </div>
+                        <input type="range" id="familySlider" min="1" max="10" value="1" onchange="calculatePremium()">
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">Monthly Premium</div>
+                        <div class="stat-value" id="totalPremium">P 111.00</div>
+                        <div class="stat-label">Includes P 30 union fee + insurance</div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="proceedToPayment()">Pay Now</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">My Coverage & Dependants</div>
+                    <div class="card-sub">Dependants appear here once activated on your Mokaulengwe policy.</div>
+                    <div id="dependantsList"></div>
+                    <div class="card-sub" style="margin-top:10px; margin-bottom:6px;">Add a new dependant</div>
+                    <div class="filter-row">
+                        <select id="depRelation">
+                            <option value="Spouse">Spouse</option>
+                            <option value="Child (0-5)">Child (Under 6)</option>
+                            <option value="Child (6-15)">Child (6-15)</option>
+                            <option value="Child (16-21)">Child (16-21)</option>
+                            <option value="Parent">Parent / Extended</option>
+                        </select>
+                    </div>
+                    <div class="filter-row">
+                        <input type="text" id="depName" placeholder="Full name of dependant">
+                        <button class="btn btn-primary btn-small" onclick="addDependant()">Add</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Standard Groceries Benefit</div>
+                    <div style="font-size: 11px; line-height: 1.6; color: var(--text-muted);">
+                        <p>In addition to the cash benefit, the union provides:</p>
+                        <ul style="margin-left: 16px; margin-top: 8px;">
+                            <li>1 x 50kg Samp</li>
+                            <li>1 x 50kg Mealie Meal</li>
+                            <li>1 x 50kg Crystal White Sugar</li>
+                            <li>1 x 50kg Flour</li>
+                            <li>4 Boxes (20 x 500ml) Full Cream Ultra Milk</li>
+                            <li>4 x Lager Rooibos Tea (80.00)</li>
+                            <li>1 x 1.50kg Joko Tea</li>
+                            <li>1 x 1.50kg Ricoffy Instant Coffee</li>
+                            <li>1 x 1kg Yeast</li>
+                            <li>10 litres Cooking Oil</li>
+                            <li>1 x 50kg Sorghum</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Funeral Support Network</div>
+                    <div class="card-sub">Regional offices, funeral services and grocery suppliers near you.</div>
+                    <div id="funeralNetwork"></div>
+                </div>
+            </div>
+
+            <!-- TAB 4: LOANS & CLAIMS -->
+            <div class="tab-page" id="tab-claims">
+                <div class="card">
+                    <div class="card-header">Loan Eligibility Checker</div>
+                    <div class="card-sub">Up to 3 months gross salary (capped at P 50,000), repayable via payroll stop-order.</div>
+                    <div class="form-group">
+                        <label class="form-label">Employment Sector</label>
+                        <select id="sector" onchange="calculateLoanEligibility()">
+                            <option value="">-- Select --</option>
+                            <option value="central">Central Government</option>
+                            <option value="council">Local Council</option>
+                            <option value="parastatal">Parastatal</option>
+                            <option value="landboard">Land Board</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Monthly Salary (Pula)</label>
+                        <input type="number" id="salary" placeholder="5000" onchange="calculateLoanEligibility()">
+                    </div>
+
+                    <div id="loanResult" style="display:none;">
+                        <div class="alert alert-success">
+                            <strong>Max Loan Available:</strong> <span id="maxLoan">P 0.00</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="applyForLoan()">Apply for Loan</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Emergency Funeral Claim</div>
+                    <div class="alert alert-warning">
+                        ⚠️ Processing deadline: File within 6 months of death. Documents must be submitted within 12 months.
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Deceased Person</label>
+                        <select id="deceasedType">
+                            <option value="">-- Select --</option>
+                            <option value="member">Main Member</option>
+                            <option value="spouse">Spouse</option>
+                            <option value="child">Child</option>
+                            <option value="parent">Parent/Extended Family</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Full Name of Deceased</label>
+                        <input type="text" placeholder="Enter full name" id="deceasedName">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date of Death</label>
+                        <input type="date" id="dateOfDeath">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Have Death Certificate?</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="hasCertificate">
+                            <label for="hasCertificate">Yes, attached</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Bank Name</label>
+                        <select id="bankName">
+                            <option value="">-- Select --</option>
+                            <option value="fnb">First National Bank (FNB)</option>
+                            <option value="stanbic">Stanbic Bank Botswana</option>
+                            <option value="absa">ABSA Bank</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Account Number</label>
+                        <input type="text" placeholder="Account number" id="accountNumber">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="submitClaim()">Submit Claim</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Required Documents Checklist</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="doc-check">
+                        <label>KYC and Claim Discharge Form</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="doc-check">
+                        <label>Certified Death Certificate</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="doc-check">
+                        <label>Certified Copy of Omang (ID)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="doc-check">
+                        <label>Proof of Residence (Affidavit/Bill)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="doc-check">
+                        <label>Bank Confirmation Letter</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="doc-check">
+                        <label>Nomination Form (Policy Document)</label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Offline Document Vault</div>
+                    <div class="card-sub">Store document scanning records locally. Use your camera or select a file (DSA security guide attached to WhatsApp on request).</div>
+                    <div class="filter-row">
+                        <select id="docType">
+                            <option value="Death Certificate">Death Certificate</option>
+                            <option value="Omang / ID">Omang / ID</option>
+                            <option value="Claim Form">Claim Form</option>
+                            <option value="Bank Confirmation">Bank Confirmation</option>
+                            <option value="Proof of Residence">Proof of Residence</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-row">
+                        <input type="text" id="docTitle" placeholder="Document name / note">
+                    </div>
+                    <div class="filter-row">
+                        <input type="file" id="docFile" accept="image/*,.pdf">
+                    </div>
+                    <button class="btn btn-primary" onclick="addDocToVault()">Save Document</button>
+                    <div id="docsList" style="margin-top: 12px;"></div>
+                </div>
+            </div>
+
+            <!-- TAB 5: MENU & PROFILE -->
+            <div class="tab-page" id="tab-menu">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-value">40,247</div>
+                        <div class="dashboard-card-label">Total Members</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-value">99.2%</div>
+                        <div class="dashboard-card-label">Coverage Rate</div>
+                    </div>
+                </div>
+
+                <div class="emergency-bar">
+                    <a class="btn btn-success" href="tel:+2673115582">📞 Call Mokaulengwe</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">My Profile</div>
+                    <div id="profileSummary"></div>
+                    <button class="btn btn-secondary" onclick="openOnboarding()" style="margin-top: 10px;">Start / Edit Onboarding</button>
+                </div>
+
+                <div class="card" id="valuesSection">
+                    <div class="card-header">Our Core Values</div>
+                    <div class="core-values-container">
+                        <div class="core-value">
+                            <div class="core-value-icon">💎</div>
+                            <div class="core-value-title">Honesty</div>
+                            <div class="core-value-desc">Free of deceit; truthful and sincere</div>
+                        </div>
+                        <div class="core-value">
+                            <div class="core-value-icon">🤝</div>
+                            <div class="core-value-title">Respect</div>
+                            <div class="core-value-desc">Due regard for feelings, wishes and rights of others</div>
+                        </div>
+                        <div class="core-value">
+                            <div class="core-value-icon">👥</div>
+                            <div class="core-value-title">Unity</div>
+                            <div class="core-value-desc">Being united or joined as a whole</div>
+                        </div>
+                        <div class="core-value">
+                            <div class="core-value-icon">⚙️</div>
+                            <div class="core-value-title">Efficiency</div>
+                            <div class="core-value-desc">Maximum productivity with minimum waste</div>
+                        </div>
+                        <div class="core-value">
+                            <div class="core-value-icon">📋</div>
+                            <div class="core-value-title">Discipline</div>
+                            <div class="core-value-desc">Controlled form of behaviour and working</div>
+                        </div>
+                        <div class="core-value">
+                            <div class="core-value-icon">🎯</div>
+                            <div class="core-value-title">Commitment</div>
+                            <div class="core-value-desc">Dedicated to a cause and activity</div>
+                        </div>
+                        <div class="core-value">
+                            <div class="core-value-icon">🔍</div>
+                            <div class="core-value-title">Transparency</div>
+                            <div class="core-value-desc">Open way without secrets, trusted and fair</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Cluster Offices</div>
+                    <div class="office-card">
+                        <div class="office-name">LOBATSE</div>
+                        <div class="office-details">
+                            Location: Lobatse, Jacaranda Ward
+                            <div class="office-phone">Tel: 5330235 / 5330353</div>
+                        </div>
+                    </div>
+                    <div class="office-card">
+                        <div class="office-name">PALAPYE</div>
+                        <div class="office-details">
+                            Location: Lotsane Mall, Unit 17
+                            <div class="office-phone">Tel: 4922026</div>
+                        </div>
+                    </div>
+                    <div class="office-card">
+                        <div class="office-name">FRANCISTOWN</div>
+                        <div class="office-details">
+                            Location: Blue Jacket Street, Behind Botswana Post
+                            <div class="office-phone">Tel: 2419765</div>
+                        </div>
+                    </div>
+                    <div class="office-card">
+                        <div class="office-name">MAUN</div>
+                        <div class="office-details">
+                            Location: Sanyedi Ward
+                            <div class="office-phone">Tel: 6862184</div>
+                        </div>
+                    </div>
+                    <div class="office-card">
+                        <div class="office-name">KANG</div>
+                        <div class="office-details">
+                            Location: Gasekgalo Ward
+                            <div class="office-phone">Tel: 6511333</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Worker Education Quiz</div>
+                    <div class="card-sub">Test your knowledge of NALCGPWU rights, benefits and Mokaulengwe cover.</div>
+                    <div id="quizBody"></div>
+                    <div id="quizResult" style="margin-top: 10px;"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Settings & Information</div>
+                    <div class="checkbox-group" style="margin-bottom: 10px;">
+                        <input type="checkbox" id="dataSaver" onchange="toggleDataSaver()">
+                        <label for="dataSaver">Data Saver Mode (hide images)</label>
+                    </div>
+                    <button class="btn btn-secondary" onclick="openModal('privacy-modal')" style="margin-bottom: 8px;">Privacy Policy</button>
+                    <button class="btn btn-secondary" onclick="openModal('terms-modal')" style="margin-bottom: 8px;">Terms of Service</button>
+                    <button class="btn btn-secondary" onclick="openModal('admin-modal')" style="margin-bottom: 8px;">Admin Dashboard</button>
+                    <button class="btn btn-secondary" onclick="clearLocalData()">Clear Local Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab(0)">
+                <div class="nav-icon-chip"><img src="Assets/icons/timeline_icon.webp" alt="Timeline"></div>
+            </div>
+            <div class="nav-item" onclick="switchTab(1)">
+                <div class="nav-icon-chip"><img src="Assets/icons/notices_icon.webp" alt="Notices"></div>
+            </div>
+            <div class="nav-item" onclick="switchTab(2)">
+                <div class="nav-icon-chip"><img src="Assets/icons/benefits_icon.webp" alt="Benefits"></div>
+            </div>
+            <div class="nav-item" onclick="switchTab(3)">
+                <div class="nav-icon-chip"><img src="Assets/icons/claims_icon.webp" alt="Claims"></div>
+            </div>
+            <div class="nav-item" onclick="switchTab(4)">
+                <div class="nav-icon-chip"><img src="Assets/icons/menu_icon.webp" alt="Menu"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+
+    <div class="modal" id="privacy-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('privacy-modal')">✕</button>
+            <h2>Privacy Policy</h2>
+            <p style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <strong>NALCGPWU Privacy Policy</strong><br><br>
+                We are committed to protecting your personal data. This application collects and stores member information necessary for:
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Managing union membership</li>
+                    <li>Processing insurance claims</li>
+                    <li>Loan scheme administration</li>
+                    <li>Communication with members</li>
+                </ul>
+                <br>
+                <strong>Data Security:</strong> All data is encrypted and stored locally on your device first. WhatsApp integration uses standard HTTPS protocols.
+                <br><br>
+                <strong>Your Rights:</strong> You can request data deletion, correction, or access at any time by contacting your cluster office.
+                <br><br>
+                Contact: funeral@amalgamated.co.bw | Tel: 267 311 5582
+            </p>
+        </div>
+    </div>
+
+    <div class="modal" id="terms-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('terms-modal')">✕</button>
+            <h2>Terms of Service</h2>
+            <p style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <strong>NALCGPWU Member App - Terms & Conditions</strong><br><br>
+                By using this application, you agree to:
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Provide accurate and complete information</li>
+                    <li>Keep your login credentials secure</li>
+                    <li>Use the app only for authorized union business</li>
+                    <li>Comply with all applicable laws and union policies</li>
+                </ul>
+                <br>
+                <strong>Mokaulengwe Insurance Terms:</strong>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Waiting period: 1 month for immediate family (first deduction activates coverage)</li>
+                    <li>Extended family: 6 months waiting period</li>
+                    <li>Claims must be filed within 6 months of death</li>
+                    <li>All required documents must be submitted within 12 months</li>
+                </ul>
+                <br>
+                Contact: funeral@amalgamated.co.bw | Tel: 267 311 5582
+            </p>
+        </div>
+    </div>
+
+    <div class="modal" id="benefits-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('benefits-modal')">✕</button>
+            <h2>Member Benefits Overview</h2>
+            <div style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <h3 style="color: var(--primary-red); margin-top: 8px;">Mokaulengwe Funeral Insurance</h3>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li><strong>Main Member:</strong> P 40,000 (natural) / P 60,000 (accidental)</li>
+                    <li><strong>Spouse:</strong> P 40,000 (natural) / P 60,000 (accidental)</li>
+                    <li><strong>Children (16-21):</strong> P 40,000</li>
+                    <li><strong>Children (6-15):</strong> P 30,000</li>
+                    <li><strong>Children (Under 6):</strong> P 15,000</li>
+                    <li><strong>Plus:</strong> Casket & Groceries package (worth P 5,000+)</li>
+                </ul>
+
+                <h3 style="color: var(--primary-red); margin-top: 12px;">Union Loan Scheme</h3>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Emergency financing based on payroll deductions</li>
+                    <li>Flexible repayment terms</li>
+                    <li>Quick processing (24-48 hours approval)</li>
+                </ul>
+
+                <h3 style="color: var(--primary-red); margin-top: 12px;">Additional Support</h3>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>24/7 Claims Assistance</li>
+                    <li>WhatsApp Direct Communication</li>
+                    <li>Legal Representation</li>
+                    <li>Workplace Rights Advocacy</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="article1-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('article1-modal')">✕</button>
+            <h2>Understanding Mokaulengwe Insurance Coverage</h2>
+            <div style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <p>The Mokaulengwe Benefit Scheme offers comprehensive family protection at affordable rates.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Base Coverage</h4>
+                <p>The base P100/month covers the main member with funeral benefit of P 40,000 for natural death or P 60,000 for accidental death.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Extended Family Tiers</h4>
+                <table class="benefit-table">
+                    <tr>
+                        <th>Cover Amount</th>
+                        <th>40 Years & Below</th>
+                        <th>41-75 Years</th>
+                        <th>76-80 Years</th>
+                    </tr>
+                    <tr>
+                        <td>P 10,000</td>
+                        <td>P 20</td>
+                        <td>P 36</td>
+                        <td>P 49</td>
+                    </tr>
+                    <tr>
+                        <td>P 20,000</td>
+                        <td>P 40</td>
+                        <td>P 73</td>
+                        <td>P 97</td>
+                    </tr>
+                    <tr>
+                        <td>P 30,000</td>
+                        <td>P 61</td>
+                        <td>P 109</td>
+                        <td>P 146</td>
+                    </tr>
+                </table>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Important Notes</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>No medical evidence required for eligibility</li>
+                    <li>Still-born children covered from 24 weeks gestation</li>
+                    <li>Maximum 10 extended family members can be nominated</li>
+                    <li>Age limit for nominees is 80 years</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="article2-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('article2-modal')">✕</button>
+            <h2>Waiting Periods: Immediate vs Extended Family</h2>
+            <div style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <p>Understanding waiting periods is critical to avoiding claim delays during bereavement.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Immediate Family (1 Month Waiting Period)</h4>
+                <p>Coverage for the member and spouse activates upon the first successful payroll deduction. No waiting period for accidental death.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Extended Family (6 Months Waiting Period)</h4>
+                <p>Parents and extended family members require 6 consecutive months of premium deductions before coverage becomes active. This applies to natural causes only.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Important Exceptions</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li><strong>Accidental Death:</strong> No waiting period - pays immediately</li>
+                    <li><strong>Policy Reinstatement:</strong> Waiting period restarts if premium lapses</li>
+                    <li><strong>New Members:</strong> 6-month wait for existing extended family on old policies</li>
+                </ul>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Activation Timeline</h4>
+                <p><strong>Month 1:</strong> First deduction = immediate family activated</p>
+                <p><strong>Month 6:</strong> 6th consecutive deduction = extended family activated</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="article3-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('article3-modal')">✕</button>
+            <h2>How to Access the Union Member Loan Scheme</h2>
+            <div style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <p>The NALCGPWU loan scheme provides quick access to emergency financing for union members.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Eligibility Criteria</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Active NALCGPWU member in good standing</li>
+                    <li>Minimum 6 months membership</li>
+                    <li>Consistent payroll deductions (no lapses)</li>
+                    <li>Employed in eligible sector (Central Government, Local Council, Parastatal, Land Board)</li>
+                </ul>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Borrowing Limits</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Up to 3 months gross salary (varies by sector)</li>
+                    <li>Repayable via automatic payroll stop-order</li>
+                    <li>Interest rates: 8% - 12% per annum (sector dependent)</li>
+                </ul>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Application Process</h4>
+                <ol style="margin: 8px 0 8px 16px;">
+                    <li>Use the Loan Eligibility Checker in the Claims tab</li>
+                    <li>Provide employment and salary details</li>
+                    <li>Authorize payroll deduction (stop-order)</li>
+                    <li>Receive approval within 24-48 hours</li>
+                    <li>Funds transferred directly to your bank account</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="article4-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('article4-modal')">✕</button>
+            <h2>NALCGPWU Governance: Core Values & Member Rights</h2>
+            <div style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <p>NALCGPWU is committed to the following core values, which guide all decisions and member interactions:</p>
+                <p><strong>🎯 Commitment to Excellence</strong><br>
+                The state or quality of being dedicated to a cause and activity. We strive for the highest standards in all union services.</p>
+                <p><strong>🤝 Respect</strong><br>
+                Due regard for the feelings, wishes, and rights of others. All members are treated with dignity.</p>
+                <p><strong>👥 Unity</strong><br>
+                The state of being united or joined as a whole. Strength through solidarity of all members across sectors.</p>
+                <p><strong>💎 Honesty</strong><br>
+                Free of deceit; truthful and sincere. Complete transparency in all union operations.</p>
+                <p><strong>⚙️ Efficiency</strong><br>
+                Achieving maximum productivity with minimum wasted effort or expense.</p>
+                <p><strong>📋 Discipline</strong><br>
+                Showing a controlled form of behaviour and way of working.</p>
+                <p><strong>🔍 Transparency and Accountability</strong><br>
+                Business and financial activities performed openly, fairly and honestly.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Member Rights</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>Right to fair representation and collective bargaining</li>
+                    <li>Right to timely and accurate information</li>
+                    <li>Right to transparent claim processing</li>
+                    <li>Right to participate in union decisions</li>
+                    <li>Right to confidentiality of personal data</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="article5-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('article5-modal')">✕</button>
+            <h2>Fast-Tracking Claims: Essential Document Checklist</h2>
+            <div style="font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px;">
+                <p>Having all required documents ready will significantly speed up the claims process during a difficult time.</p>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">For Main Member & Spouse Claims</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>KYC and claim discharge form</li>
+                    <li>Certified death certificate</li>
+                    <li>Certified copy of Omang (ID)</li>
+                    <li>Proof of residential (Affidavit or Utility Bill)</li>
+                    <li>Proof of banking details (Bank confirmation letter)</li>
+                    <li>Nomination form (Policy document)</li>
+                    <li>Marriage certificate and Form B (for spouse)</li>
+                </ul>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">For Child Claims</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>All of the above, plus:</li>
+                    <li>Certified copy of child's birth certificate showing parent details</li>
+                    <li>Pregnancy summary report (for still-born claims)</li>
+                </ul>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">For Parent/Extended Family Claims</h4>
+                <ul style="margin: 8px 0 8px 16px;">
+                    <li>All standard documents listed above</li>
+                    <li>Certified marriage certificate (if relevant for surname difference)</li>
+                    <li>Affidavit for surname difference (if applicable)</li>
+                </ul>
+                <h4 style="color: var(--primary-red); margin-top: 12px;">Processing Timeline</h4>
+                <p><strong>Submission Deadline:</strong> Within 6 months of death</p>
+                <p><strong>Document Deadline:</strong> All documents within 12 months</p>
+                <p><strong>Payment Timeline:</strong> Within 48 hours of approved claim</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff / Admin Dashboard -->
+    <div class="modal" id="admin-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('admin-modal')">✕</button>
+            <h2>Staff Dashboard</h2>
+            <div class="dashboard-grid" style="margin-bottom: 12px;">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-value" id="adminTotal">0</div>
+                    <div class="dashboard-card-label">Active Members</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-value" id="adminPending">0</div>
+                    <div class="dashboard-card-label">Pending Verification</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-value">4</div>
+                    <div class="dashboard-card-label">Employment Sectors</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-value">5</div>
+                    <div class="dashboard-card-label">Cluster Offices</div>
+                </div>
+            </div>
+
+            <div class="card-header">Member Search</div>
+            <div class="form-group">
+                <div class="filter-row">
+                    <input type="text" placeholder="Search by name or Omang..." id="adminSearch" onkeyup="renderAdminMembers()">
+                </div>
+                <div class="filter-row">
+                    <select id="adminSector" onchange="renderAdminMembers()">
+                        <option value="">All Sectors</option>
+                        <option value="central_gov">Central Government</option>
+                        <option value="local_council">Local Authority</option>
+                        <option value="land_board">Land Board</option>
+                        <option value="parastatal">Parastatal / SOE</option>
+                    </select>
+                    <select id="adminStatus" onchange="renderAdminMembers()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="pending_verification">Pending Verification</option>
+                    </select>
+                </div>
+            </div>
+            <div id="adminMembersList"></div>
+        </div>
+    </div>
+
+    <!-- Onboarding Wizard -->
+    <div class="modal" id="onboarding-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('onboarding-modal')">✕</button>
+            <h2>Member Onboarding</h2>
+            <div class="wizard-progress" id="wizardProgress"></div>
+            <div id="wizardBody"></div>
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" id="wizBack" onclick="wizardBack()">Back</button>
+                <button class="btn btn-primary" id="wizNext" onclick="wizardNext()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="docs/data/botswana_locations.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/onboarding.js"></script>
+    <script src="js/benefits.js"></script>
+    <script src="js/loans.js"></script>
+    <script src="js/claims.js"></script>
+    <script src="js/notices.js"></script>
+    <script src="js/education.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
