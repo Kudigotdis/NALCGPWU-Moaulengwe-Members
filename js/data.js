@@ -281,6 +281,162 @@ window.NALCGPWU_DEFAULT_DEPENDANTS = [
     { id: "dep3", name: "Lerato Mokaulengwe", relation: "Child (6-15)", status: "pending", cover: "P 30,000" }
 ];
 
+window.NALCGPWU_PREMIUM = {
+    currency: "BWP",
+    unionFee: 30,
+    tiers: [
+        { value: '5000', label: 'P 5,000 Cover' },
+        { value: '10000', label: 'P 10,000 Cover' },
+        { value: '15000', label: 'P 15,000 Cover' },
+        { value: '20000', label: 'P 20,000 Cover' },
+        { value: '25000', label: 'P 25,000 Cover' },
+        { value: '30000', label: 'P 30,000 Cover' },
+        { value: '40000', label: 'P 40,000 Cover' }
+    ],
+    ageBands: [
+        { key: 'low', label: '40 Years & Below' },
+        { key: 'mid', label: '41 to 75 Years' },
+        { key: 'high', label: '76 - 80 Years' }
+    ],
+    rates: {
+        '5000':  { low: 10, mid: 18, high: 24 },
+        '10000': { low: 20, mid: 36, high: 49 },
+        '15000': { low: 30, mid: 55, high: 73 },
+        '20000': { low: 40, mid: 73, high: 97 },
+        '25000': { low: 50, mid: 91, high: 122 },
+        '30000': { low: 61, mid: 109, high: 146 },
+        '40000': { low: 81, mid: 146, high: 195 }
+    },
+    childBrackets: [
+        { key: 'Child (0-5)',   minAge: 0,  maxAge: 5,  cover: 'P 15,000', monthly: 5 },
+        { key: 'Child (6-15)',  minAge: 6,  maxAge: 15, cover: 'P 30,000', monthly: 10 },
+        { key: 'Child (16-21)', minAge: 16, maxAge: 21, cover: 'P 40,000', monthly: 15 }
+    ],
+    spouseCover: 'P 40,000 / P 60,000',
+    parentCover: 'P 40,000 / P 60,000',
+    maxNominees: 10,
+    extendedWaitingMonths: 6
+};
+
+/* =====================================================
+   PREMIUM HELPERS (used by onboarding + benefits)
+   Age band rules: <=40 low, 41-75 mid, 76-80 high.
+   Children up to 21 use flat nominal rates per bracket.
+===================================================== */
+function ageFromDob(dob) {
+    if (!dob) return null;
+    const d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    const now = new Date();
+    let age = now.getFullYear() - d.getFullYear();
+    const m = now.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+    return age;
+}
+
+function ageBandFromDob(dob) {
+    const age = ageFromDob(dob);
+    if (age === null) return 'low';
+    if (age <= 40) return 'low';
+    if (age <= 75) return 'mid';
+    return 'high';
+}
+
+function ageBandLabel(band) {
+    const b = NALCGPWU_PREMIUM.ageBands.find(x => x.key === band);
+    return b ? b.label : band;
+}
+
+function childBracketFromDob(dob) {
+    const age = ageFromDob(dob);
+    if (age === null || age < 0 || age > 21) return null;
+    return NALCGPWU_PREMIUM.childBrackets.find(b => age >= b.minAge && age <= b.maxAge) || null;
+}
+
+function childBracketFromKey(key) {
+    if (!key || key.indexOf('Child') !== 0) return null;
+    return NALCGPWU_PREMIUM.childBrackets.find(b => b.key === key) || null;
+}
+
+function childBracketFor(relation, dob) {
+    const byKey = childBracketFromKey(relation);
+    if (byKey) return byKey;
+    return relation && relation.indexOf('Child') === 0 ? childBracketFromDob(dob) : null;
+}
+
+function addMonths(date, months) {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + months);
+    return d;
+}
+
+function familyMemberCover(relation, dob) {
+    const tax = NALCGPWU_PREMIUM;
+    if (relation === 'Spouse') return tax.spouseCover;
+    if (relation === 'Parent' || relation === 'Parent / Extended') return tax.parentCover;
+    if (relation && relation.indexOf('Child') === 0) {
+        const bracket = childBracketFor(relation, dob);
+        return bracket ? bracket.cover : tax.childBrackets[tax.childBrackets.length - 1].cover;
+    }
+    return tax.spouseCover;
+}
+
+function familyMemberRate(tier, relation, dob) {
+    const tax = NALCGPWU_PREMIUM;
+    const tierRates = tax.rates[tier] || tax.rates['40000'];
+    if (relation && relation.indexOf('Child') === 0) {
+        const bracket = childBracketFor(relation, dob);
+        return bracket ? bracket.monthly : tax.childBrackets[0].monthly;
+    }
+    return tierRates[ageBandFromDob(dob)] || tierRates.low;
+}
+
+function familyMemberStatus(relation) {
+    if (!relation) return 'pending';
+    if (relation === 'Spouse' || relation.indexOf('Child') === 0) return 'active';
+    return 'pending';
+}
+
+function buildFamilyMember(name, relation, dob, tier) {
+    const activeNow = familyMemberStatus(relation) === 'active';
+    const bracket = relation && relation.indexOf('Child') === 0 ? childBracketFor(relation, dob) : null;
+    return {
+        id: 'fam' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        name: name,
+        relation: relation,
+        dob: dob,
+        childBracket: bracket ? bracket.key : '',
+        ageBand: familyMemberStatus(relation) === 'active' && bracket ? '' : ageBandFromDob(dob),
+        cover: familyMemberCover(relation, dob),
+        rate: familyMemberRate(tier, relation, dob),
+        status: activeNow ? 'active' : 'pending',
+        effectiveDate: activeNow ? new Date().toISOString() : addMonths(new Date(), NALCGPWU_PREMIUM.extendedWaitingMonths).toISOString()
+    };
+}
+
+function computePolicyMonthlyTotal(tier, memberBand, family) {
+    const tax = NALCGPWU_PREMIUM;
+    const tierRates = tax.rates[tier] || tax.rates['40000'];
+    const memberRate = tierRates[memberBand] || tierRates.low || 0;
+    let familyRate = 0;
+    (family || []).forEach(f => { familyRate += (typeof f.rate === 'number' ? f.rate : 0); });
+    return {
+        unionFee: tax.unionFee,
+        memberRate: memberRate,
+        familyRate: familyRate,
+        total: tax.unionFee + (typeof memberRate === 'number' ? memberRate : 0) + familyRate
+    };
+}
+
+function getSavedPolicy() {
+    const p = LocalStore.get('mokau_policy');
+    return p && p.tier ? p : null;
+}
+
+function savePolicy(policy) {
+    LocalStore.set('mokau_policy', policy);
+}
+
 window.NALCGPWU_FUNERAL_PARTNERS = [
     { name: "Masiela Funeral Services", type: "Funeral Services", phone: "+267 311 5582", location: "Gaborone", detail: "Full funeral management & transport", icon: "M" },
     { name: "S & K Funeral Parlour", type: "Funeral Services", phone: "+267 492 2026", location: "Palapye", detail: "Burial services & casket supply", icon: "S" },

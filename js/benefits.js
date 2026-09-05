@@ -8,19 +8,10 @@ function calculatePremium() {
 
     document.getElementById('familyCount').textContent = familyCount;
 
-    const premiumMap = {
-        '5000': { low: 10, mid: 18, high: 24 },
-        '10000': { low: 20, mid: 36, high: 49 },
-        '15000': { low: 30, mid: 55, high: 73 },
-        '20000': { low: 40, mid: 73, high: 97 },
-        '25000': { low: 50, mid: 91, high: 122 },
-        '30000': { low: 61, mid: 109, high: 146 },
-        '40000': { low: 81, mid: 146, high: 195 }
-    };
-
-    const map = premiumMap[coverTier] || premiumMap['40000'];
+    const tax = NALCGPWU_PREMIUM;
+    const map = tax.rates[coverTier] || tax.rates['40000'];
     const basePremium = map[ageBand] || map.low;
-    const totalPremium = 30 + (basePremium * familyCount);
+    const totalPremium = tax.unionFee + (basePremium * familyCount);
 
     document.getElementById('totalPremium').textContent = 'P ' + totalPremium.toFixed(2);
 
@@ -77,17 +68,22 @@ function renderDependants() {
 
     let html = '';
     list.forEach(dep => {
+        const statusText = dep.status === 'active' ? 'Active' : dep.status === 'pending' ? 'Activating (6 deductions)' : 'Pending';
+        const name = esc(dep.name);
+        const details = (dep.childBracket ? esc(dep.relation) + ' (' + esc(dep.childBracket) + ')' : esc(dep.relation)) +
+            ' &bull; ' + esc(dep.cover) +
+            (typeof dep.rate === 'number' ? ' &bull; P ' + dep.rate.toFixed(2) + '/mo' : '');
         html +=
-            '<div class="member-card">' +
+            '<div class="member-card dismissable">' +
+            '<button type="button" class="card-x" onclick="removeDependant(\'' + dep.id + '\')" aria-label="Remove ' + name + '">&times;</button>' +
             '<div class="member-avatar">' + initialsOf(dep.name) + '</div>' +
             '<div class="member-info">' +
-            '<div class="member-name">' + esc(dep.name) + '</div>' +
-            '<div class="member-details">' + esc(dep.relation) + ' &bull; Cover: ' + esc(dep.cover) + '</div>' +
+            '<div class="member-name">' + name + '</div>' +
+            '<div class="member-details">' + details + '</div>' +
             '<div class="member-tags">' +
-            '<span class="tag ' + (dep.status === 'active' ? 'green' : 'amber') + '">' + (dep.status === 'active' ? 'Active' : dep.status === 'pending' ? 'Activating' : 'Pending') + '</span>' +
+            '<span class="tag ' + (dep.status === 'active' ? 'green' : 'amber') + '">' + statusText + '</span>' +
             '</div>' +
             '</div>' +
-            '<button class="btn btn-secondary btn-small" style="flex:0 0 auto; width:auto;" onclick="removeDependant(\'' + dep.id + '\')">Remove</button>' +
             '</div>';
     });
     container.innerHTML = html;
@@ -95,35 +91,45 @@ function renderDependants() {
 
 function addDependant() {
     const name = document.getElementById('depName').value.trim();
-    const relation = document.getElementById('depRelation').value;
+    let relation = document.getElementById('depRelation').value;
+    const dob = document.getElementById('depDob') ? document.getElementById('depDob').value : '';
 
     if (!name) {
         toast('Please enter the dependant\'s full name.');
         return;
     }
 
-    const coverMap = {
-        'Spouse': 'P 40,000 / P 60,000',
-        'Child (0-5)': 'P 15,000',
-        'Child (6-15)': 'P 30,000',
-        'Child (16-21)': 'P 40,000',
-        'Parent': 'P 40,000 / P 60,000'
+    if (relation === 'Child') {
+        const bracket = childBracketFromDob(dob);
+        if (bracket) relation = bracket.key;
+    }
+
+    const tier = (document.getElementById('coverTier') && document.getElementById('coverTier').value) || '40000';
+    const member = {
+        id: 'dep' + Date.now().toString(36),
+        name: name,
+        relation: relation,
+        dob: dob,
+        childBracket: relation.indexOf('Child') === 0 ? relation : '',
+        ageBand: relation.indexOf('Child') === 0 ? '' : ageBandFromDob(dob),
+        cover: familyMemberCover(relation, dob),
+        rate: familyMemberRate(tier, relation, dob),
+        status: familyMemberStatus(relation),
+        effectiveDate: familyMemberStatus(relation) === 'active'
+            ? new Date().toISOString()
+            : addMonths(new Date(), NALCGPWU_PREMIUM.extendedWaitingMonths).toISOString()
     };
 
     const list = getDependants();
-    list.push({
-        id: 'dep' + Date.now(),
-        name,
-        relation,
-        cover: coverMap[relation] || 'P 40,000',
-        status: 'pending'
-    });
+    list.push(member);
 
     saveDependants(list);
     document.getElementById('depName').value = '';
+    if (document.getElementById('depDob')) document.getElementById('depDob').value = '';
     renderDependants();
     renderPolicyCard();
-    toast('Dependant added. Extended family coverage activates after 6 consecutive deductions.');
+    toast(member.relation + ' added. ' +
+        (member.status === 'active' ? 'Active from the first deduction.' : 'Extended family activates after ' + NALCGPWU_PREMIUM.extendedWaitingMonths + ' consecutive deductions.'));
 }
 
 function removeDependant(id) {
@@ -145,12 +151,20 @@ function renderPolicyCard() {
     const activeDeps = getDependants().filter(d => d.status === 'active').length;
     const pendingDeps = getDependants().filter(d => d.status !== 'active').length;
 
+    const policy = getSavedPolicy();
+    const tier = policy ? policy.tier : '40000';
+    const tierLabel = (NALCGPWU_PREMIUM.tiers.find(t => t.value === tier) || {}).label || 'P 40,000 Cover';
+    const memberBand = policy && policy.member ? policy.member.ageBand : 'low';
+    const calc = computePolicyMonthlyTotal(tier, memberBand, getDependants());
+
     container.innerHTML =
         '<div class="policy-card">' +
         '<div class="policy-row"><span class="policy-row-label">Policy</span><span class="policy-row-value red">Mokaulengwe Benefit</span></div>' +
         '<div class="policy-row"><span class="policy-row-label">Member</span><span class="policy-row-value">' + esc(memberName) + '</span></div>' +
         '<div class="policy-row"><span class="policy-row-label">Main Member Cover</span><span class="policy-row-value">P 40,000 / P 60,000</span></div>' +
+        '<div class="policy-row"><span class="policy-row-label">Cover Tier</span><span class="policy-row-value">' + esc(tierLabel) + '</span></div>' +
         '<div class="policy-row"><span class="policy-row-label">Family Members</span><span class="policy-row-value">' + activeDeps + ' active' + (pendingDeps ? ' &bull; ' + pendingDeps + ' activating' : '') + '</span></div>' +
+        '<div class="policy-row"><span class="policy-row-label">Monthly Premium</span><span class="policy-row-value red">P ' + calc.total.toFixed(2) + ' <span style="font-weight:400;">(union P ' + calc.unionFee.toFixed(2) + ' + cover P ' + (calc.memberRate + calc.familyRate).toFixed(2) + ')</span></span></div>' +
         '<div class="policy-row"><span class="policy-row-label">Status</span><span class="policy-row-value">' +
         '<span class="tag green">&#9679; Active</span>' +
         '</span></div>' +

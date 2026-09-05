@@ -35,7 +35,7 @@
                         <div class="feed-description">Cover your immediate family from as little as P 130.00 per month (P 30.00 union subscription + P 100.00 for funeral)</div>
                         <div class="feed-actions">
                             <button class="action-btn" onclick="switchTab(2)">Learn More</button>
-                            <button class="action-btn whatsapp" onclick="whatsappShare('mokaulengwe', 'Check out NALCGPWU Mokaulengwe Insurance - protect your family today!')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                            <img class="feed-whatsapp" src="Assets/icons/whatsApp_icon_on.png" alt="Share on WhatsApp" title="Share on WhatsApp" onclick="whatsappShare('mokaulengwe', 'Check out NALCGPWU Mokaulengwe Insurance - protect your family today!')">
                         </div>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                         <div class="feed-description">Quick access loans for emergency situations. Check your eligibility based on payroll deductions.</div>
                         <div class="feed-actions">
                             <button class="action-btn" onclick="switchTab(3)">Check Eligibility</button>
-                            <button class="action-btn whatsapp" onclick="whatsappShare('loan', 'Interested in NALCGPWU member loans. Need more info?')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                            <img class="feed-whatsapp" src="Assets/icons/whatsApp_icon_on.png" alt="Share on WhatsApp" title="Share on WhatsApp" onclick="whatsappShare('loan', 'Interested in NALCGPWU member loans. Need more info?')">
                         </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
                         <div class="feed-description">Honesty • Respect • Unity • Efficiency • Discipline • Commitment to Excellence • Transparency</div>
                         <div class="feed-actions">
                             <button class="action-btn" onclick="switchTab(4); setTimeout(function(){ document.getElementById('valuesSection').scrollIntoView(); }, 120);">Read More</button>
-                            <button class="action-btn whatsapp" onclick="whatsappShare('values', 'NALCGPWU Core Values guide our mission to serve workers')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                            <img class="feed-whatsapp" src="Assets/icons/whatsApp_icon_on.png" alt="Share on WhatsApp" title="Share on WhatsApp" onclick="whatsappShare('values', 'NALCGPWU Core Values guide our mission to serve workers')">
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                         <div class="feed-description">• Funeral Insurance (P 40,000-P 60,000)<br>• Casket & Groceries<br>• Loan Scheme Access<br>• Legal Support<br>• Healthcare Advocacy</div>
                         <div class="feed-actions">
                             <button class="action-btn" onclick="openModal('benefits-modal')">Details</button>
-                            <button class="action-btn whatsapp" onclick="whatsappShare('benefits', 'Check NALCGPWU member benefits!')"><img src="Assets/icons/whatsApp_icon_on.png" alt="WhatsApp">Share</button>
+                            <img class="feed-whatsapp" src="Assets/icons/whatsApp_icon_on.png" alt="Share on WhatsApp" title="Share on WhatsApp" onclick="whatsappShare('benefits', 'Check NALCGPWU member benefits!')">
                         </div>
                     </div>
                 </div>
@@ -197,8 +197,11 @@
                             <option value="Child (0-5)">Child (Under 6)</option>
                             <option value="Child (6-15)">Child (6-15)</option>
                             <option value="Child (16-21)">Child (16-21)</option>
-                            <option value="Parent">Parent / Extended</option>
+                            <option value="Parent / Extended">Parent / Extended</option>
                         </select>
+                    </div>
+                    <div class="filter-row">
+                        <input type="date" id="depDob" title="Date of birth (drives age band and child cover bracket)">
                     </div>
                     <div class="filter-row">
                         <input type="text" id="depName" placeholder="Full name of dependant">
@@ -495,19 +498,19 @@
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab(0)">
-                <div class="nav-icon-chip"><img src="Assets/icons/timeline_icon.webp" alt="Timeline"></div>
+                <img src="Assets/icons/timeline_icon.webp" alt="Timeline">
             </div>
             <div class="nav-item" onclick="switchTab(1)">
-                <div class="nav-icon-chip"><img src="Assets/icons/notices_icon.webp" alt="Notices"></div>
+                <img src="Assets/icons/notices_icon.webp" alt="Notices">
             </div>
             <div class="nav-item" onclick="switchTab(2)">
-                <div class="nav-icon-chip"><img src="Assets/icons/benefits_icon.webp" alt="Benefits"></div>
+                <img src="Assets/icons/benefits_icon.webp" alt="Benefits">
             </div>
             <div class="nav-item" onclick="switchTab(3)">
-                <div class="nav-icon-chip"><img src="Assets/icons/claims_icon.webp" alt="Claims"></div>
+                <img src="Assets/icons/claims_icon.webp" alt="Claims">
             </div>
             <div class="nav-item" onclick="switchTab(4)">
-                <div class="nav-icon-chip"><img src="Assets/icons/menu_icon.webp" alt="Menu"></div>
+                <img src="Assets/icons/menu_icon.webp" alt="Menu">
             </div>
         </div>
     </div>

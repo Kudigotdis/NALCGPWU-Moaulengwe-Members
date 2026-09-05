@@ -3,11 +3,12 @@
 ===================================================== */
 const wiz = {
     step: 0,
-    total: 6,
+    total: 7,
     data: {
-        personal: { firstName: '', surname: '', omang: '', phone: '', email: '' },
+        personal: { firstName: '', surname: '', omang: '', phone: '', email: '', dob: '' },
         employment: { sectorId: '', employeeName: '', departmentId: '', cadreGroup: '', jobTitle: '', customJobTitle: '', useCustom: false },
         location: { district: '', town: '', area: '', workStation: '' },
+        coverage: { tier: '40000', family: [] },
         payroll: { payrollNumber: '', employeeNumber: '', unionMembershipNumber: '', employmentStatus: '' }
     }
 };
@@ -57,7 +58,7 @@ function renderWizard() {
 }
 
 function wizardStepLabel(step) {
-    const labels = ['Welcome', 'Personal Details', 'Employment Sector', 'Employer & Job', 'Work Location', 'Payroll & Review'];
+    const labels = ['Welcome', 'Personal Details', 'Employment Sector', 'Employer & Job', 'Work Location', 'Coverage & Family', 'Payroll & Review'];
     return labels[step] || '';
 }
 
@@ -76,6 +77,7 @@ function wizardStepHtml(step) {
                 '<div class="form-group"><label class="form-label">First Name</label><input type="text" id="wzFName" value="' + esc(wiz.data.personal.firstName) + '"></div>' +
                 '<div class="form-group"><label class="form-label">Surname</label><input type="text" id="wzSurname" value="' + esc(wiz.data.personal.surname) + '"></div>' +
                 '<div class="form-group"><label class="form-label">Omang Number</label><input type="text" id="wzOmang" placeholder="e.g. 090000000" value="' + esc(wiz.data.personal.omang) + '"></div>' +
+                '<div class="form-group"><label class="form-label">Date of Birth</label><input type="date" id="wzDob" value="' + esc(wiz.data.personal.dob) + '"></div>' +
                 '<div class="form-group"><label class="form-label">Mobile Number</label><input type="tel" id="wzPhone" placeholder="+267 ..." value="' + esc(wiz.data.personal.phone) + '"></div>' +
                 '<div class="form-group"><label class="form-label">Email Address (Optional)</label><input type="email" id="wzEmail" value="' + esc(wiz.data.personal.email) + '"></div>' +
                 '</div>';
@@ -86,6 +88,8 @@ function wizardStepHtml(step) {
         case 4:
             return locationStepHtml();
         case 5:
+            return coverageStepHtml();
+        case 6:
             return payrollReviewHtml();
         default:
             return '';
@@ -282,6 +286,102 @@ function onAreaChange() {
     wiz.data.location.area = document.getElementById('wzArea').value;
 }
 
+/* =====================================================
+   4. COVERAGE & FAMILY STEP
+   Choose cover tier, add spouse/children/parents to the
+   policy. Live monthly total = union P30 + member rate
+   (by tier + age band) + each family member's own rate.
+===================================================== */
+function coverageStepHtml() {
+    const tier = wiz.data.coverage.tier || '40000';
+    const memberBand = ageBandFromDob(wiz.data.personal.dob);
+    const total = computePolicyMonthlyTotal(tier, memberBand, wiz.data.coverage.family);
+
+    let html = '<div class="onboarding-step"><h3>Coverage &amp; Family</h3>';
+    html += '<p class="subtext">Choose your cover tier, then add the family members to cover on your Mokaulengwe policy.</p>';
+
+    html += '<div class="form-group"><label class="form-label">Coverage Tier</label><select id="wzCoverTier" onchange="onWizardTierChange()">';
+    NALCGPWU_PREMIUM.tiers.forEach(t => {
+        const sel = t.value === tier ? ' selected' : '';
+        html += '<option value="' + t.value + '"' + sel + '>' + esc(t.label) + '</option>';
+    });
+    html += '</select></div>';
+
+    html += '<div class="stat-box">' +
+        '<div class="stat-label">Your monthly insurance &mdash; ' + esc(ageBandLabel(memberBand)) + '</div>' +
+        '<div class="stat-value">P ' + total.memberRate.toFixed(2) + '</div>' +
+        '</div>';
+
+    html += '<div class="card-sub" style="margin-top:8px;">Add family member to policy (' + wiz.data.coverage.family.length + ' / ' + NALCGPWU_PREMIUM.maxNominees + ')</div>';
+    html += '<div class="form-group"><label class="form-label">Relation</label>' +
+        '<select id="wzFamRelation"><option value="Spouse">Spouse</option><option value="Child">Child</option><option value="Parent / Extended">Parent / Extended</option></select></div>';
+    html += '<div class="form-group"><label class="form-label">Full Name</label><input type="text" id="wzFamName" placeholder="e.g. Boitumelo Mokaulengwe"></div>';
+    html += '<div class="form-group"><label class="form-label">Date of Birth</label><input type="date" id="wzFamDob"></div>';
+    html += '<button type="button" class="btn btn-secondary btn-small" onclick="addWizardFamily()" style="width:100%;">Add to Policy</button>';
+
+    if (wiz.data.coverage.family.length) {
+        html += '<div class="card-sub" style="margin-top:12px;">Family on your policy</div>';
+        html += '<div id="wizFamilyList">';
+        wiz.data.coverage.family.forEach(f => {
+            const a = initialsOf(f.name);
+            html +=
+                '<div class="member-card dismissable">' +
+                '<button type="button" class="card-x" onclick="removeWizardFamily(\'' + f.id + '\')" aria-label="Remove ' + esc(f.name) + '">&times;</button>' +
+                '<div class="member-avatar">' + esc(a) + '</div>' +
+                '<div class="member-info">' +
+                '<div class="member-name">' + esc(f.name) + '</div>' +
+                '<div class="member-details">' + esc(f.relation) + (f.childBracket ? ' (' + esc(f.childBracket) + ')' : '') + ' &bull; ' + esc(f.cover) + '</div>' +
+                '<div class="member-tags">' +
+                '<span class="tag ' + (f.status === 'active' ? 'green' : 'amber') + '">' + (f.status === 'active' ? 'Active' : 'Activating (6 deductions)') + '</span>' +
+                '</div>' +
+                '</div></div>';
+        });
+        html += '</div>';
+    }
+
+    html += '<div class="stat-box" style="margin-top:12px;">' +
+        '<div class="stat-label">Estimated Monthly Total</div>' +
+        '<div class="stat-value" id="wizMonthlyTotal">P ' + total.total.toFixed(2) + '</div>' +
+        '<div class="stat-label">Union P ' + total.unionFee.toFixed(2) + ' + you P ' + total.memberRate.toFixed(2) + ' + family P ' + total.familyRate.toFixed(2) + '</div>' +
+        '</div>';
+
+    html += '<p class="subtext" style="margin-top:6px;">Spouse &amp; children activate from the first deduction. Parents / extended family activate after ' + NALCGPWU_PREMIUM.extendedWaitingMonths + ' consecutive deductions.</p>';
+    html += '</div>';
+    return html;
+}
+
+function onWizardTierChange() {
+    const t = document.getElementById('wzCoverTier');
+    if (t) wiz.data.coverage.tier = t.value;
+    renderWizard();
+}
+
+function addWizardFamily() {
+    const name = document.getElementById('wzFamName').value.trim();
+    const relation = document.getElementById('wzFamRelation').value;
+    const dob = document.getElementById('wzFamDob').value;
+
+    if (!name) { toast('Please enter the family member\'s full name.'); return; }
+    if (!dob) { toast('Please enter their date of birth.'); return; }
+    if (ageFromDob(dob) === null) { toast('Please enter a valid date of birth.'); return; }
+    if (relation === 'Child' && !childBracketFromDob(dob)) { toast('Children on the policy must be under 21 years of age.'); return; }
+    if (wiz.data.coverage.family.length >= NALCGPWU_PREMIUM.maxNominees) {
+        toast('Maximum of ' + NALCGPWU_PREMIUM.maxNominees + ' family nominees per policy.');
+        return;
+    }
+
+    const member = buildFamilyMember(name, relation, dob, wiz.data.coverage.tier || '40000');
+    wiz.data.coverage.family.push(member);
+    renderWizard();
+    toast(member.relation + ' added. ' +
+        (member.status === 'active' ? 'Active from the first deduction.' : 'Activating after ' + NALCGPWU_PREMIUM.extendedWaitingMonths + ' consecutive deductions.'));
+}
+
+function removeWizardFamily(id) {
+    wiz.data.coverage.family = wiz.data.coverage.family.filter(f => f.id !== id);
+    renderWizard();
+}
+
 function payrollReviewHtml() {
     const emp = wiz.data.employment;
     const sector = findSectorById(emp.sectorId);
@@ -291,6 +391,10 @@ function payrollReviewHtml() {
     const jobLabel = emp.useCustom ? emp.customJobTitle : emp.jobTitle;
 
     const payroll = wiz.data.payroll;
+    const tier = wiz.data.coverage.tier || '40000';
+    const tierLabel = (NALCGPWU_PREMIUM.tiers.find(t => t.value === tier) || {}).label || '';
+    const memberBand = ageBandFromDob(wiz.data.personal.dob);
+    const calc = computePolicyMonthlyTotal(tier, memberBand, wiz.data.coverage.family);
     let html = '<div class="onboarding-step"><h3>Payroll &amp; Review</h3><p class="subtext">Confirm your details before creating your profile.</p>';
 
     html += '<div class="form-group"><label class="form-label">Payroll Number</label><input type="text" id="wzPayrollNo" value="' + esc(payroll.payrollNumber) + '"></div>';
@@ -314,6 +418,9 @@ function payrollReviewHtml() {
     html += '<div class="policy-row"><span class="policy-row-label">District</span><span class="policy-row-value">' + esc(wiz.data.location.district) + '</span></div>';
     html += '<div class="policy-row"><span class="policy-row-label">Work Station</span><span class="policy-row-value">' + esc(wiz.data.location.workStation) + '</span></div>';
     html += '<div class="policy-row"><span class="policy-row-label">Verification</span><span class="policy-row-value red">Pending</span></div>';
+    html += '<div class="policy-row"><span class="policy-row-label">Cover Tier</span><span class="policy-row-value">' + esc(tierLabel) + '</span></div>';
+    html += '<div class="policy-row"><span class="policy-row-label">Family on Policy</span><span class="policy-row-value">' + wiz.data.coverage.family.length + ' / ' + NALCGPWU_PREMIUM.maxNominees + '</span></div>';
+    html += '<div class="policy-row"><span class="policy-row-label">Monthly Premium</span><span class="policy-row-value red">P ' + calc.total.toFixed(2) + ' (incl. P ' + calc.unionFee.toFixed(2) + ' union)</span></div>';
     html += '</div>';
     html += '</div>';
     return html;
@@ -328,6 +435,7 @@ function bindStep(step) {
         wiz.data.personal.firstName = read('wzFName');
         wiz.data.personal.surname = read('wzSurname');
         wiz.data.personal.omang = read('wzOmang');
+        wiz.data.personal.dob = read('wzDob');
         wiz.data.personal.phone = read('wzPhone');
         wiz.data.personal.email = read('wzEmail');
     }
@@ -351,6 +459,7 @@ function collectStep() {
         wiz.data.personal.firstName = read('wzFName');
         wiz.data.personal.surname = read('wzSurname');
         wiz.data.personal.omang = read('wzOmang');
+        wiz.data.personal.dob = read('wzDob');
         wiz.data.personal.phone = read('wzPhone');
         wiz.data.personal.email = read('wzEmail');
     }
@@ -372,6 +481,10 @@ function collectStep() {
         wiz.data.location.area = document.getElementById('wzArea').value;
         const ws = document.getElementById('wzWorkStation');
         if (ws) wiz.data.location.workStation = ws.value;
+    }
+    if (s === 5) {
+        const t = document.getElementById('wzCoverTier');
+        if (t) wiz.data.coverage.tier = t.value;
     }
     if (s === 5) {
         wiz.data.payroll.payrollNumber = document.getElementById('wzPayrollNo').value;
@@ -397,6 +510,9 @@ function validateStep(step) {
     if (step === 1) {
         if (!wiz.data.personal.firstName || !wiz.data.personal.surname) { toast('Please enter your first name and surname.'); return false; }
         if (!wiz.data.personal.omang) { toast('Please enter your Omang number.'); return false; }
+        if (!wiz.data.personal.dob) { toast('Please enter your date of birth.'); return false; }
+        if (ageFromDob(wiz.data.personal.dob) === null) { toast('Please enter a valid date of birth.'); return false; }
+        if (ageFromDob(wiz.data.personal.dob) < 18) { toast('Members must be at least 18 years old.'); return false; }
         if (!wiz.data.personal.phone) { toast('Please enter your mobile number.'); return false; }
     }
     if (step === 2) {
@@ -415,6 +531,12 @@ function validateStep(step) {
         if (!wiz.data.location.workStation) { toast('Please enter your work station.'); return false; }
     }
     if (step === 5) {
+        if (wiz.data.coverage.family.length > NALCGPWU_PREMIUM.maxNominees) {
+            toast('Maximum of ' + NALCGPWU_PREMIUM.maxNominees + ' family nominees per policy.');
+            return false;
+        }
+    }
+    if (step === 6) {
         if (!wiz.data.payroll.payrollNumber) { toast('Please enter your payroll number.'); return false; }
         if (!wiz.data.payroll.employmentStatus) { toast('Please select your employment status.'); return false; }
     }
@@ -459,6 +581,33 @@ function createProfile() {
         name: profile.personal.firstName + ' ' + profile.personal.surname,
         omang: profile.personal.omang
     });
+
+    const tier = wiz.data.coverage.tier || '40000';
+    const memberBand = ageBandFromDob(wiz.data.personal.dob);
+    const calc = computePolicyMonthlyTotal(tier, memberBand, wiz.data.coverage.family);
+
+    const policy = {
+        tier: tier,
+        member: {
+            name: profile.personal.firstName + ' ' + profile.personal.surname,
+            omang: profile.personal.omang,
+            dob: profile.personal.dob,
+            ageBand: memberBand,
+            rate: calc.memberRate
+        },
+        family: wiz.data.coverage.family.slice(),
+        unionFee: calc.unionFee,
+        monthlyInsurance: calc.memberRate + calc.familyRate,
+        monthlyTotal: calc.total,
+        currency: NALCGPWU_PREMIUM.currency,
+        createdAt: profile.onboarding.completedAt,
+        status: 'pending_verification'
+    };
+    savePolicy(policy);
+
+    if (wiz.data.coverage.family.length) {
+        LocalStore.set('mokau_dependents', wiz.data.coverage.family.slice());
+    }
 
     closeModal('onboarding-modal');
     renderProfileSummary();

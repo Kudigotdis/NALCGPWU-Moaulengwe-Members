@@ -15,16 +15,30 @@ function renderNotices() {
 
     let html = '';
     notices.forEach(n => {
+        const name = esc(n.title);
         html +=
-            '<div class="notice-card">' +
-            '<div class="notice-card-title">' + esc(n.title) + '</div>' +
-            '<div class="notice-card-body">' + esc(n.body) + '</div>' +
-            '<div class="notice-card-date">' + esc(n.date) + '</div>' +
-            '</div>';
+            '<div class="member-card dismissable" data-notice="' + esc(n.id) + '">' +
+            '<button type="button" class="card-x" onclick="dismissNotice(\'' + n.id + '\')" aria-label="Dismiss ' + name + '">&times;</button>' +
+            '<div class="member-avatar">' + initialsOf(n.title) + '</div>' +
+            '<div class="member-info">' +
+            '<div class="member-name">' + name + '</div>' +
+            '<div class="member-details">' + esc(n.body) + '</div>' +
+            '<div class="member-tags">' +
+            '<span class="tag">' + esc(n.date) + '</span>' +
+            '</div>' +
+            '</div></div>';
     });
     container.innerHTML = html;
 
     LocalStore.set('mokau_notices', notices);
+}
+
+function dismissNotice(id) {
+    const saved = LocalStore.get('mokau_notices');
+    const list = (saved && Array.isArray(saved) ? saved : NALCGPWU_NOTICES).filter(n => n.id !== id);
+    LocalStore.set('mokau_notices', list);
+    renderNotices();
+    toast('Notice dismissed.');
 }
 
 /* =====================================================
@@ -59,7 +73,7 @@ function searchArticles() {
         article.style.display = text.includes(term) ? 'block' : 'none';
     });
 
-    const notices = document.querySelectorAll('#noticesList .notice-card');
+    const notices = document.querySelectorAll('#noticesList .member-card');
     notices.forEach(n => {
         const text = n.textContent.toLowerCase();
         n.style.display = text.includes(term) ? 'block' : 'none';

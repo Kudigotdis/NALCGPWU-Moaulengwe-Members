@@ -160,6 +160,38 @@ body {
     gap: 12px;
     padding: 10px 12px;
     margin-bottom: 10px;
+    position: relative;
+}
+
+.member-card.dismissable {
+    padding-right: 34px;
+}
+
+/* Dismiss 'x' in the top-right corner of member cards */
+.card-x {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muted-grey);
+    border: 1px solid var(--border-grey);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s;
+}
+
+.card-x:active {
+    background: var(--primary-red);
+    color: var(--white);
+    border-color: var(--primary-red);
 }
 
 .member-card.clickable {
@@ -283,6 +315,21 @@ body {
 .feed-actions {
     display: flex;
     gap: 8px;
+    align-items: center;
+}
+
+/* WhatsApp action: icon only (no wrapper button / text) */
+.feed-whatsapp {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.feed-whatsapp:active {
+    transform: scale(0.92);
 }
 
 .action-btn {
@@ -306,29 +353,6 @@ body {
     background: var(--primary-red);
     color: var(--white);
     border-color: var(--primary-red);
-}
-
-.action-btn.whatsapp {
-    background: var(--whatsapp-green);
-    color: var(--white);
-    border-color: var(--whatsapp-green);
-}
-
-.action-btn.whatsapp:hover {
-    background: var(--whatsapp-dark);
-    border-color: var(--whatsapp-dark);
-}
-
-.action-btn.whatsapp img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-}
-
-.action-btn img {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
 }
 
 /* Articles */
@@ -512,14 +536,13 @@ input:focus, select:focus, textarea:focus {
     font-size: 11px;
 }
 
-/* Bottom navigation - flat white icons, no text */
+/* Bottom navigation - red bar with flat white icons, no text */
 .bottom-nav {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--white);
-    border-top: 1px solid var(--border-grey);
+    background: var(--primary-red);
     display: flex;
     justify-content: space-around;
     align-items: stretch;
@@ -544,35 +567,25 @@ input:focus, select:focus, textarea:focus {
     content: "";
     position: absolute;
     top: 0;
-    left: 18%;
-    right: 18%;
+    left: 22%;
+    right: 22%;
     height: 3px;
-    background: var(--primary-red);
+    background: var(--white);
     border-radius: 0 0 var(--radius) var(--radius);
 }
 
-.nav-icon-chip {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius);
-    background: var(--muted-grey);
-    border: 1px solid var(--border-grey);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.nav-item.active .nav-icon-chip {
-    background: var(--primary-red);
-    border-color: var(--primary-red);
-}
-
-.nav-icon-chip img {
+/* Icons only: inactive 40% opacity, active 100% */
+.nav-item img {
     width: 22px;
     height: 22px;
     object-fit: contain;
-    filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+    opacity: 0.4;
+    filter: brightness(0) invert(1);
+    transition: opacity 0.2s;
+}
+
+.nav-item.active img {
+    opacity: 1;
 }
 
 /* Calculator */
