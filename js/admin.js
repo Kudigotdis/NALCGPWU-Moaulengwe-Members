@@ -1,13 +1,13 @@
 /* =====================================================
    1. ADMIN STATS
-===================================================== */
+   ===================================================== */
 function renderAdminStats() {
     const totalEl = document.getElementById('adminTotal');
     const pendingEl = document.getElementById('adminPending');
     if (!totalEl || !pendingEl) return;
 
-    const savedMembers = LocalStore.get('mokau_members');
-    const members = savedMembers && Array.isArray(savedMembers) ? savedMembers : NALCGPWU_MOCK_MEMBERS;
+    const savedMembers = LocalStore.get('bopeu_members');
+    const members = savedMembers && Array.isArray(savedMembers) ? savedMembers : BOPEU_MOCK_MEMBERS;
 
     const active = members.filter(m => m.status === 'active').length;
     const pending = members.filter(m => m.status === 'pending_verification').length;
@@ -18,10 +18,10 @@ function renderAdminStats() {
 
 /* =====================================================
    2. MEMBER SEARCH & FILTER
-===================================================== */
+   ===================================================== */
 function getFilteredMembers() {
-    const savedMembers = LocalStore.get('mokau_members');
-    const members = savedMembers && Array.isArray(savedMembers) ? savedMembers : NALCGPWU_MOCK_MEMBERS;
+    const savedMembers = LocalStore.get('bopeu_members');
+    const members = savedMembers && Array.isArray(savedMembers) ? savedMembers : BOPEU_MOCK_MEMBERS;
 
     const term = (document.getElementById('adminSearch').value || '').toLowerCase().trim();
     const sector = document.getElementById('adminSector').value;
@@ -31,8 +31,8 @@ function getFilteredMembers() {
         if (sector && m.sector !== sector) return false;
         if (status && m.status !== status) return false;
         if (term) {
-            const haystack = (m.name + ' ' + m.omang + ' ' + m.employer + ' ' + m.jobTitle + ' ' + m.district).toLowerCase();
-            if (!haystack.includes(term)) return false;
+            const haystack = (m.name + ' ' + m.omang + ' ' + m.memberNo + ' ' + m.employer + ' ' + m.jobTitle + ' ' + m.district).toLowerCase();
+            if (haystack.indexOf(term) < 0) return false;
         }
         return true;
     });
@@ -64,6 +64,7 @@ function renderAdminMembers() {
             '<div class="member-tags">' +
             '<span class="tag">' + esc(m.sectorLabel) + '</span>' +
             '<span class="tag blue">' + esc(m.district) + '</span>' +
+            '<span class="tag">' + esc(m.memberNo) + '</span>' +
             statusTag +
             '</div>' +
             '</div>' +

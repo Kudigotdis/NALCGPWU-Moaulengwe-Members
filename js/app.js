@@ -1,6 +1,6 @@
 /* =====================================================
    1. APP STATE & STORAGE
-===================================================== */
+   ===================================================== */
 class LocalStore {
     static set(key, value) {
         try {
@@ -28,11 +28,11 @@ class LocalStore {
     }
 }
 
-const MOKAULENGWE_PHONE = '2673115582';
+const BOPEU_WHATSAPP = '2673214200';
 
 /* =====================================================
    2. NAVIGATION & UI HELPERS
-===================================================== */
+   ===================================================== */
 function switchTab(tabIndex) {
     const pages = document.querySelectorAll('.tab-page');
     const navItems = document.querySelectorAll('.nav-item');
@@ -47,7 +47,6 @@ function switchTab(tabIndex) {
 
     const area = document.querySelector('.content-area');
     if (area) area.scrollTop = 0;
-    LocalStore.set('lastTab', tabIndex);
 }
 
 function openModal(modalId) {
@@ -69,22 +68,222 @@ function initialsOf(name) {
     return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 }
 
+function esc(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escAttr(str) {
+    return esc(str).replace(/'/g, '&#39;');
+}
+
+function onDataSaver() {
+    return !!LocalStore.get('dataSaver');
+}
+
 /* =====================================================
    3. WHATSAPP INTEGRATION
-===================================================== */
-function whatsappShare(type, message) {
+   ===================================================== */
+function whatsappShare(message) {
     const text = encodeURIComponent(message);
-    const url = 'https://wa.me/' + MOKAULENGWE_PHONE + '?text=' + text;
+    const url = 'https://wa.me/' + BOPEU_WHATSAPP + '?text=' + text;
     window.open(url, '_blank');
 }
 
 function openWhatsapp(message) {
-    whatsappShare('support', message);
+    whatsappShare(message);
 }
 
 /* =====================================================
-   4. OFFLINE DETECTION
-===================================================== */
+   4. LOGIN / OTP (demo flow)
+   ===================================================== */
+function requestOtp() {
+    const identifier = document.getElementById('loginIdentifier').value.trim();
+    if (!identifier) {
+        toast('Please enter your Omang or Employee Number.');
+        return;
+    }
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    LocalStore.set('bopeu_otp', otp);
+    document.getElementById('otpHint').textContent = 'Demo OTP: ' + otp;
+    toast('OTP sent to your registered mobile number.\n\nDemo OTP: ' + otp);
+}
+
+function doLogin() {
+    const identifier = document.getElementById('loginIdentifier').value.trim();
+    if (!identifier) {
+        toast('Please enter your Omang or Employee Number.');
+        return;
+    }
+    const enteredOtp = document.getElementById('loginOtp').value.trim();
+    const correctOtp = LocalStore.get('bopeu_otp') || '123456';
+    if (enteredOtp !== correctOtp) {
+        toast('Invalid OTP. Try again, or use the demo OTP shown.');
+        return;
+    }
+    finishLogin(identifier);
+}
+
+function skipLogin() {
+    finishLogin('090000111');
+    toast('Signed in with the demo member profile. Complete member registration for full services.');
+}
+
+function finishLogin(identifier) {
+    let profile = loadOnboarding();
+    if (!profile) {
+        const mock = BOPEU_MOCK_MEMBERS.find(m => m.omang === identifier || m.memberNo === identifier || identifier === m.omang);
+        if (mock) {
+            profile = {
+                personal: { firstName: mock.name.split(' ')[0], surname: mock.name.split(' ').slice(1).join(' '), omang: mock.omang, phone: '+267 70 000 000', email: '', dob: '1985-06-15' },
+                employment: {
+                    sectorId: mock.sector, sectorLabel: mock.sectorLabel,
+                    employeeName: mock.employerId, employerLabel: mock.employer,
+                    departmentId: mock.departmentId, jobTitle: mock.jobTitle,
+                    basicSalary: mock.basicSalary
+                },
+                location: { district: mock.district, town: '', area: '', workStation: '' },
+                memberNo: mock.memberNo,
+                joined: mock.joined,
+                status: mock.status
+            };
+            LocalStore.set('bopeu_profile', profile);
+        } else {
+            profile = {
+                personal: { firstName: 'BOPEU', surname: 'Member', omang: identifier, phone: '', email: '', dob: '' },
+                employment: {},
+                location: { district: '', town: '', area: '', workStation: '' },
+                memberNo: BOPEU_STATS.memberNoPrefix + String(1000 + Math.floor(Math.random() * 9000)),
+                joined: new Date().toISOString().slice(0, 10),
+                status: 'pending_verification'
+            };
+            LocalStore.set('bopeu_profile', profile);
+        }
+    }
+    LocalStore.set('bopeu_logged_in', true);
+    closeModal('login-modal');
+    refreshHeader();
+    renderHome();
+    renderMemberCard();
+    toasts();
+}
+
+function logout() {
+    LocalStore.remove('bopeu_logged_in');
+    openModal('login-modal');
+}
+
+function toasts() {
+    toast('Welcome back to BOPEU. Tshwaragano... your voice in labour issues matters.');
+}
+
+function currentMemberNo() {
+    const profile = loadOnboarding();
+    return (profile && profile.memberNo) || BOPEU_STATS.memberNoPrefix + '1001';
+}
+
+function memberMonths() {
+    const profile = loadOnboarding();
+    if (!profile || !profile.joined) return 0;
+    const d = new Date(profile.joined);
+    const now = new Date();
+    return Math.max(0, (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth()));
+}
+
+/* =====================================================
+   5. LOGO CONTROLLER (change logo app-wide)
+   ===================================================== */
+window.BOPEU_LOGOS = {
+    bopeu: {
+        label: 'BOPEU',
+        desc: 'Official BOPEU emblem (default)',
+        src: 'Assets/logo/bopeu_logo.webp'
+    },
+    mokaulengwe: {
+        label: 'Mokaulengwe (legacy)',
+        desc: 'Legacy welfare shield emblem',
+        src: "data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23D32F2F;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23B71C1C;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 100 20 Q 140 35 150 80 L 150 120 Q 150 155 100 180 Q 50 155 50 120 L 50 80 Q 60 35 100 20' fill='url(%23grad)' stroke='white' stroke-width='4'/%3E%3Ccircle cx='100' cy='70' r='35' fill='white' opacity='0.9'/%3E%3Cpath d='M 75 65 Q 85 60 95 65 Q 105 60 115 65 Q 120 70 115 75 Q 105 80 95 75 Q 85 80 75 75 Q 70 70 75 65' fill='%23D32F2F' stroke='%23D32F2F' stroke-width='2'/%3E%3Cpath d='M 60 110 Q 50 115 45 130' stroke='%23D32F2F' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M 55 105 Q 40 112 35 135' stroke='%23D32F2F' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M 140 110 Q 150 115 155 130' stroke='%23D32F2F' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M 145 105 Q 160 112 165 135' stroke='%23D32F2F' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+    },
+    file: {
+        label: 'Uploaded logo',
+        desc: 'Your own uploaded image',
+        src: null
+    }
+};
+
+function getLogoSource() {
+    const saved = LocalStore.get('bopeu_logo');
+    if (saved && saved.key === 'file' && saved.dataUrl) return saved;
+    if (saved && BOPEU_LOGOS[saved.key]) return saved;
+    return { key: 'bopeu', dataUrl: null };
+}
+
+function applyAppLogo() {
+    const sel = getLogoSource();
+    let src = sel.dataUrl || BOPEU_LOGOS.bopeu.src;
+    if (sel.key === 'file' && !src) src = BOPEU_LOGOS.bopeu.src;
+    document.querySelectorAll('.app-logo').forEach(img => {
+        img.src = src;
+        img.dataset.logoKey = sel.key;
+    });
+}
+
+function renderLogoOptions() {
+    const container = document.getElementById('logoOptions');
+    const preview = document.getElementById('logoPreview');
+    if (!container) return;
+    const sel = getLogoSource();
+
+    let html = '';
+    Object.keys(BOPEU_LOGOS).forEach(key => {
+        const logo = BOPEU_LOGOS[key];
+        const src = key === 'file' ? (sel.key === 'file' ? sel.dataUrl : null) : logo.src;
+        html +=
+            '<button type="button" class="logo-option' + (sel.key === key ? ' selected' : '') + '" onclick="selectLogo(\'' + key + '\')">' +
+            (src ? '<img src="' + src + '" alt="' + esc(logo.label) + '">' : '<div class="status-avatar" style="width:42px;height:42px;font-size:16px;">?</div>') +
+            '<div>' +
+            '<div class="lo-title">' + esc(logo.label) + '</div>' +
+            '<div class="lo-desc">' + esc(logo.desc) + '</div>' +
+            '</div>' +
+            '</button>';
+    });
+    html += '<input type="file" id="logoUploader" accept="image/*" style="display:none;" onchange="uploadLogo(event)">';
+    html += '<button type="button" class="btn btn-secondary" onclick="document.getElementById(\'logoUploader\').click()">Upload your own logo</button>';
+    container.innerHTML = html;
+
+    if (preview) {
+        const src = sel.dataUrl || BOPEU_LOGOS.bopeu.src;
+        preview.innerHTML = '<img src="' + src + '" alt="Current logo">';
+    }
+}
+
+function selectLogo(key) {
+    if (BOPEU_LOGOS[key] && BOPEU_LOGOS[key].src) {
+        LocalStore.set('bopeu_logo', { key: key, dataUrl: null });
+    } else if (key === 'file') {
+        document.getElementById('logoUploader').click();
+        return;
+    }
+    applyAppLogo();
+    renderLogoOptions();
+}
+
+function uploadLogo(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        LocalStore.set('bopeu_logo', { key: 'file', dataUrl: e.target.result });
+        applyAppLogo();
+        renderLogoOptions();
+        toast('Logo updated across the app!');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+}
+
+/* =====================================================
+   6. OFFLINE DETECTION / DATA SAVER / CLEAR
+   ===================================================== */
 window.addEventListener('online', () => {
     const dot = document.getElementById('statusDot');
     if (dot) dot.style.backgroundColor = '#4CAF50';
@@ -95,13 +294,10 @@ window.addEventListener('offline', () => {
     if (dot) dot.style.backgroundColor = '#FFC107';
 });
 
-/* =====================================================
-   5. DATA SAVER + CLEAR DATA
-===================================================== */
 function toggleDataSaver() {
-    const cb = document.getElementById('dataSaver');
+    const cb = document.getElementById('dataSaver') || document.getElementById('dataSaverFlip');
     const app = document.getElementById('appContainer');
-    const enabled = cb.checked;
+    const enabled = cb ? cb.checked : false;
     app.classList.toggle('data-saver', enabled);
     LocalStore.set('dataSaver', enabled);
 }
@@ -114,15 +310,191 @@ function clearLocalData() {
 }
 
 /* =====================================================
-   6. INITIALIZE
-===================================================== */
+   7. HOME DASHBOARD
+   ===================================================== */
+function renderHome() {
+    const container = document.getElementById('timelineFeed');
+    if (!container) return;
+    container.innerHTML = '';
+    if (typeof renderTimeline === 'function') {
+        renderTimeline(container);
+    }
+    const ds = LocalStore.get('dataSaver');
+    const dsBox = document.getElementById('dataSaverFlip');
+    if (dsBox) dsBox.checked = !!ds;
+}
+
+function getOfficeLabelFromDistrict(district) {
+    const d = district || '';
+    if (d === 'Ngamiland') return 'Maun';
+    if (d === 'Central District') return 'Palapye';
+    if (d === 'Ngwaketse' || d === 'Kgalagadi') return 'Kang';
+    if (d === 'Francistown' || d === 'North-East') return 'Francistown';
+    return 'Gaborone';
+}
+
+function buildHomeHtml() {
+    const profile = loadOnboarding();
+    const name = profile ? (profile.personal.firstName + ' ' + profile.personal.surname) : 'BOPEU Member';
+    const memberNo = currentMemberNo();
+    const status = profile ? (profile.status || 'pending_verification') : 'active';
+    const since = profile && profile.joined ? profile.joined : '2023-04-10';
+    const months = memberMonths();
+    const st = BOPEU_STATS;
+
+    let html = '';
+
+    if (months >= 6) {
+        html += '<div class="banner-callout">' +
+            '<div class="bc-kicker">Ready to Amplify Your Voice</div>' +
+            '<div class="bc-title">' + st.members + ' members strong</div>' +
+            '<div class="bc-text">BOPEU is ready for you. Legal representation, collective bargaining, dispute resolution and organising — united under #WorkersRights.</div>' +
+            '<div class="bc-cta"><a class="btn btn-secondary" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:#fff;" href="tel:+' + BOPEU_CONTACTS.generalLine + '">Call (267) 3214 200</a></div>' +
+            '</div>';
+    } else {
+        html += '<div class="alert alert-warning">⚠️ You have been a BOPEU member for ' + months + ' months. Some benefits require at least 6 months of membership.</div>';
+    }
+
+    html += '<div class="status-card">' +
+        '<div class="status-avatar">' + initialsOf(name) + '</div>' +
+        '<div class="status-info">' +
+        '<div class="status-name">' + esc(name) + '</div>' +
+        '<div class="status-role">' + (profile ? esc(profile.employment.sectorLabel || profile.employment.employerLabel || 'Public Employee') : 'Public Employee') + '</div>' +
+        '<div class="status-meta">' +
+        '<span class="tag ' + (status === 'active' ? 'green' : 'amber') + '">' + (status === 'active' ? 'Active' : 'Pending') + '</span>' +
+        '<span class="tag blue">' + esc(memberNo) + '</span>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+
+    html += '<div class="dashboard-grid" style="margin-bottom:12px;">' +
+        '<div class="dashboard-card"><div class="dashboard-card-value">' + st.members + '</div><div class="dashboard-card-label">Members</div></div>' +
+        '<div class="dashboard-card"><div class="dashboard-card-value">' + st.offices + '</div><div class="dashboard-card-label">Offices</div></div>' +
+        '<div class="dashboard-card"><div class="dashboard-card-value">' + st.services + '</div><div class="dashboard-card-label">Services</div></div>' +
+        '<div class="dashboard-card"><div class="dashboard-card-value">' + st.affiliates + '</div><div class="dashboard-card-label">Affiliates</div></div>' +
+        '</div>';
+
+    html += '<div class="card"><div class="card-header">Quick Actions</div><div class="quick-grid">' +
+        '<button type="button" class="quick-action" onclick="openForm(\'bursary\')"><em>🎓</em><span>Apply Bursary</span></button>' +
+        '<button type="button" class="quick-action" onclick="openForm(\'building\')"><em>🏠</em><span>Building Material</span></button>' +
+        '<button type="button" class="quick-action" onclick="openForm(\'funeral\')"><em>🛡️</em><span>Funeral Cover</span></button>' +
+        '<button type="button" class="quick-action" onclick="openForm(\'loan\')"><em>💰</em><span>Quick Loan</span></button>' +
+        '<button type="button" class="quick-action" onclick="switchTab(3)"><em>🪪</em><span>My Card</span></button>' +
+        '<button type="button" class="quick-action" onclick="switchTab(4); scrollToOffices();"><em>📍</em><span>Find Office</span></button>' +
+        '</div></div>';
+
+    html += '<div class="card"><div class="card-header">Updates</div><div id="homeUpdates"></div></div>';
+
+    html += '<div class="card"><div class="card-header">Settings & Information</div>' +
+        '<div class="checkbox-group" style="margin-bottom:10px;">' +
+        '<input type="checkbox" id="dataSaverFlip" onchange="toggleDataSaver()">' +
+        '<label for="dataSaverFlip">Data Saver Mode (hide images)</label>' +
+        '</div>' +
+        '<button class="btn btn-secondary" onclick="openModal(\'logo-modal\')" style="margin-bottom:8px;">🎨 Change App Logo</button>' +
+        '<button class="btn btn-secondary" onclick="openModal(\'privacy-modal\')" style="margin-bottom:8px;">Privacy Policy</button>' +
+        '<button class="btn btn-secondary" onclick="openModal(\'terms-modal\')" style="margin-bottom:8px;">Terms of Service</button>' +
+        '<button class="btn btn-secondary" onclick="openModal(\'admin-modal\')" style="margin-bottom:8px;">Admin Dashboard</button>' +
+        '<button class="btn btn-secondary" onclick="clearLocalData()">Clear Local Data</button>' +
+        '</div>';
+
+    return html;
+}
+
+function renderHomeUpdates() {
+    const container = document.getElementById('homeUpdates');
+    if (!container) return;
+    let html = '';
+    BOPEU_NOTICES.slice(0, 2).forEach(n => {
+        html += '<div class="member-card">' +
+            '<div class="member-avatar">' + initialsOf(n.title) + '</div>' +
+            '<div class="member-info">' +
+            '<div class="member-name">' + esc(n.title) + '</div>' +
+            '<div class="member-details">' + esc(n.body) + '</div>' +
+            '<div class="member-tags"><span class="tag">' + esc(n.date) + '</span></div>' +
+            '</div></div>';
+    });
+    html += '<button class="btn btn-secondary" onclick="switchTab(1)">View Notices & Articles</button>';
+    container.innerHTML = html;
+}
+
+function scrollToOffices() {
+    const el = document.getElementById('officesList');
+    if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 120);
+}
+
+function renderOffices() {
+    const container = document.getElementById('officesList');
+    if (!container) return;
+    let html = '';
+    let lastCat = '';
+    BOPEU_OFFICES.forEach(o => {
+        if (o.category !== lastCat) {
+            lastCat = o.category;
+            html += '<div class="office-group-title">' + esc(o.category) + '</div>';
+        }
+        html +=
+            '<div class="office-card">' +
+            '<div class="office-name">' + esc(o.name) + '</div>' +
+            '<div class="office-details">' +
+            'Location: ' + esc(o.plot) +
+            '<div class="office-phone">Tel: ' + esc(o.phone) + '</div>' +
+            '<div class="member-tags" style="margin-top:6px;">' +
+            '<button class="btn btn-secondary btn-small" style="width:auto;" onclick="location.href=\'tel:+' + o.tel + '\'">Call</button>' +
+            '<button class="btn btn-secondary btn-small" style="width:auto;" onclick="whatsappShare(\'Hoping to reach the ' + esc(o.name) + ' office of BOPEU.\')">WhatsApp</button>' +
+            '</div></div></div>';
+    });
+    html += '<div class="emergency-bar">' +
+        '<a class="btn btn-success" href="tel:+' + BOPEU_CONTACTS.generalLine + '">📞 Call BOPEU HQ (267) 3214 200</a>' +
+        '</div>';
+    container.innerHTML = html;
+}
+
+function renderFaq() {
+    const container = document.getElementById('faqList');
+    if (!container) return;
+    let html = '';
+    (window.BOPEU_FAQ || []).forEach(g => {
+        html += '<div class="faq-group-title">' + esc(g.cat) + '</div>';
+        (g.items || []).forEach(f => {
+            html += '<details class="accordion"><summary>' + esc(f.q) + '</summary><div class="accordion-inner">' + esc(f.a) + '</div></details>';
+        });
+    });
+    container.innerHTML = html;
+}
+
+function callSupport() {
+    location.href = 'tel:+' + BOPEU_CONTACTS.supportTel;
+}
+
+function emailSupport() {
+    location.href = 'mailto:' + BOPEU_CONTACTS.email;
+}
+
+/* =====================================================
+   8. HEADER / INITIALIZE
+   ===================================================== */
+function refreshHeader() {
+    const loggedIn = LocalStore.get('bopeu_logged_in');
+    const statusDot = document.getElementById('statusDot');
+    if (statusDot) statusDot.style.display = loggedIn ? 'block' : 'none';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    const savedTab = LocalStore.get('lastTab') || 0;
-    switchTab(savedTab);
+    const tabFromUrl = parseInt(new URLSearchParams(window.location.search).get('tab'), 10);
+    switchTab(!isNaN(tabFromUrl) && tabFromUrl >= 0 && tabFromUrl <= 4 ? tabFromUrl : 0);
 
     const dataSaver = LocalStore.get('dataSaver');
     if (dataSaver) {
-        document.getElementById('dataSaver').checked = true;
+        const box = document.getElementById('dataSaverFlip');
+        if (box) box.checked = true;
         document.getElementById('appContainer').classList.add('data-saver');
+    }
+
+    applyAppLogo();
+    refreshHeader();
+    renderHome();
+
+    if (!LocalStore.get('bopeu_logged_in')) {
+        openModal('login-modal');
     }
 });

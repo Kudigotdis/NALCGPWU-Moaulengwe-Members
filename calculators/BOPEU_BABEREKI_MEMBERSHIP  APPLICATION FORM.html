@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BOPEU Membership Calculator</title>
+<style>
+  :root{
+    --ink:#1A202C;
+    --muted:#718096;
+    --line:#E2E8F0;
+    --brand:#D32F2F;
+    --brand2:#B71C1C;
+    --danger:#B71C1C;
+    --soft:#F4F5F7;
+    --gold:#C9A227;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%}
+  body{
+    margin:0;
+    height:100dvh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:#E9ECEF;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+  }
+  .phone{
+    width:100%;
+    max-width:400px;
+    height:100dvh;
+    max-height:900px;
+    background:#F4F5F7;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+  @media (min-width:430px){
+    .phone{border-radius:30px;box-shadow:0 34px 70px rgba(0,0,0,.55);height:860px}
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    flex:0 0 auto;
+    background:linear-gradient(135deg,#D32F2F 0%,#B71C1C 100%);
+    color:#fff;
+    padding:14px 18px 12px;
+  }
+  .brand{
+    font-size:9px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    opacity:.78;
+    font-weight:700;
+  }
+  .topbar h1{
+    margin:3px 0 0;
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:-.01em;
+  }
+
+  /* ---------- sticky total ---------- */
+  .totalbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:10px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+    position:relative;
+    z-index:6;
+  }
+  .totalbar .lbl{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--muted);
+    line-height:1.3;
+  }
+  .totalbar .amt{
+    font-size:23px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+    transition:transform .16s ease;
+    transform-origin:right center;
+  }
+  .totalbar .amt.pop{transform:scale(1.07)}
+
+  /* ---------- scroll area ---------- */
+  .scroll{
+    flex:1 1 auto;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    padding:10px 10px 26px;
+  }
+
+  /* ---------- accordion ---------- */
+  .acc{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:9px;
+    overflow:hidden;
+    transition:box-shadow .2s ease,border-color .2s ease;
+  }
+  .acc.open{
+    border-color:#FFCDD2;
+    box-shadow:0 8px 20px rgba(211,47,47,.10);
+  }
+  .acc-head{
+    width:100%;
+    border:0;
+    background:transparent;
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+    padding:12px 13px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    transition:background .18s ease;
+  }
+  .acc.open .acc-head{background:#FFEBEE}
+  .acc-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .acc-title{
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .acc-sub{
+    font-size:10px;
+    font-weight:500;
+    color:var(--muted);
+    line-height:1.25;
+  }
+  .acc-total{
+    font-size:13px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .acc-body{
+    display:none;
+    padding:12px 13px 14px;
+    border-top:1px solid var(--line);
+  }
+  .acc.open .acc-body{display:block}
+
+  /* ---------- form fields ---------- */
+  .subhead{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:14px 0 8px;
+    padding-bottom:5px;
+    border-bottom:1px solid #EDEFF2;
+  }
+  .subhead:first-child{margin-top:0}
+  .subhead + .subhead{margin-top:0}
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    min-width:0;
+  }
+  .field > label{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding-left:2px;
+  }
+  .field input,
+  .field select,
+  .field textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 10px;
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .field textarea{
+    resize:none;
+    min-height:54px;
+    line-height:1.4;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder{color:#a8b4be;font-weight:500}
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus{
+    outline:2px solid #EF9A9A;
+    outline-offset:-1px;
+    background:#fff;
+  }
+  .field input[type=date]{font-weight:700}
+  .field input[type=number]{font-variant-numeric:tabular-nums}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .grid-2 .field{margin:0}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px}
+  .grid-3 .field{margin:0}
+  .mb{margin-bottom:8px}
+
+  /* ---------- main card (member / spouse) ---------- */
+  .person-card{
+    background:#F8FAFB;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:10px;
+  }
+  .person-card:last-child{margin-bottom:0}
+
+  .card-top{
+    display:flex;
+    align-items:flex-start;
+    gap:11px;
+    margin-bottom:10px;
+  }
+  .avatar{
+    position:relative;
+    flex:0 0 auto;
+    width:66px;
+    height:66px;
+    border-radius:50%;
+    border:1.5px dashed #b9c7d1;
+    background:#F7F9FB center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    overflow:hidden;
+    transition:border-color .15s ease,background-color .15s ease;
+  }
+  .avatar:active{border-color:var(--brand);background-color:#FFEBEE}
+  .avatar.has-photo{border-style:solid;border-color:#EF9A9A}
+  .avatar svg{
+    width:26px;height:26px;
+    fill:none;stroke:#A0AEB9;stroke-width:1.6;
+    stroke-linecap:round;stroke-linejoin:round;
+    pointer-events:none;
+  }
+  .avatar input[type=file]{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    opacity:0;cursor:pointer;
+  }
+  .avatar-sm{width:48px;height:48px}
+  .avatar-sm svg{width:20px;height:20px}
+
+  .card-top-right{
+    flex:1 1 auto;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .card-label{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------- person rows (dynamic) ---------- */
+  .person{
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .person:last-child{border-bottom:0}
+  .person:first-child{padding-top:0}
+
+  .p-top{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:9px;
+  }
+  .p-id{
+    flex:1 1 auto;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .p-tag{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    line-height:1;
+  }
+  .nameinput{
+    width:100%;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:8px 10px;
+  }
+  .nameinput::placeholder{font-weight:500;color:#a8b4be}
+  .nameinput:focus{outline:2px solid #EF9A9A;outline-offset:-1px;background:#fff}
+
+  .x{
+    flex:0 0 auto;
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1px solid #f2d6ce;
+    background:#fff5f1;
+    color:var(--danger);
+    font-size:15px;
+    line-height:1;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition:background .15s ease,transform .1s ease;
+  }
+  .x:active{background:#ffe4da;transform:scale(.92)}
+
+  /* ---------- PW toggle ---------- */
+  .pw-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 0 2px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .pw-toggle .pwt-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .pw-toggle .pwt-text strong{font-size:12px;font-weight:800;color:var(--ink)}
+  .pw-toggle .pwt-text span{font-size:9.5px;color:var(--muted);line-height:1.3}
+
+  .pw{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:9.5px;
+    font-weight:800;
+    letter-spacing:.05em;
+    color:var(--muted);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:8px 9px;
+    white-space:nowrap;
+    cursor:pointer;
+    user-select:none;
+    flex:0 0 auto;
+  }
+  .pw input{
+    width:14px;height:14px;margin:0;
+    accent-color:var(--brand);
+    cursor:pointer;
+  }
+  .pw:has(input:checked){
+    background:#FFEBEE;
+    border-color:#EF9A9A;
+    color:var(--brand);
+  }
+
+  /* ---------- cost display ---------- */
+  .cost-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:9px;
+    padding-top:9px;
+    border-top:1px solid #EDF1F4;
+  }
+  .cost-row .cr-label{
+    font-size:9.5px;
+    font-weight:800;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .cost-row .cr-amount{
+    font-size:13.5px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- benefit pill (children) ---------- */
+  .benefit-pill{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:8px;
+    padding:8px 10px;
+    background:#FFEBEE;
+    border:1px dashed #EF9A9A;
+    border-radius:9px;
+  }
+  .benefit-pill .bp-label{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--brand);
+    opacity:.75;
+  }
+  .benefit-pill .bp-amount{
+    font-size:13px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+  }
+  .benefit-pill .bp-band{
+    font-size:9px;
+    font-weight:700;
+    color:var(--muted);
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:2px 7px;
+  }
+
+  /* ---------- add button ---------- */
+  .addbtn{
+    width:100%;
+    margin-top:11px;
+    padding:11px;
+    border-radius:11px;
+    border:1px dashed #EF9A9A;
+    background:#FFEBEE;
+    color:var(--brand);
+    font-family:inherit;
+    font-size:11.5px;
+    font-weight:800;
+    letter-spacing:.03em;
+    cursor:pointer;
+    transition:background .15s ease,transform .1s ease,opacity .15s ease;
+  }
+  .addbtn:active{background:#FFCDD2;transform:scale(.985)}
+  .addbtn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    background:#F4F5F7;
+    border-color:#D9E1E8;
+    color:#A0AEB9;
+  }
+  .addbtn:disabled:active{transform:none;background:#F4F5F7}
+
+  .empty{
+    margin:12px 0 2px;
+    text-align:center;
+    font-size:11px;
+    color:#A0AEB9;
+    font-weight:600;
+  }
+
+  /* ---------- summary ---------- */
+  .summary-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 0;
+    font-size:12px;
+    border-bottom:1px dashed var(--line);
+  }
+  .summary-row:last-child{border-bottom:0}
+  .summary-row .sr-l{
+    color:var(--muted);
+    font-weight:600;
+  }
+  .summary-row .sr-r{
+    font-weight:800;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .summary-row.total{
+    border-top:1px solid var(--line);
+    border-bottom:0;
+    margin-top:4px;
+    padding-top:12px;
+  }
+  .summary-row.total .sr-l{
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  .summary-row.total .sr-r{
+    font-size:17px;
+    color:var(--brand);
+  }
+
+  /* ---------- notes ---------- */
+  .notes{
+    margin:8px 0 0;
+    padding-left:16px;
+    font-size:10.5px;
+    line-height:1.65;
+    color:var(--muted);
+  }
+  .notes li{margin-bottom:6px}
+  .notes li::marker{color:#EF9A9A}
+  .notes strong{color:var(--ink);font-weight:800}
+
+  .consent{
+    font-size:10.5px;
+    line-height:1.6;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+  .consent strong{color:var(--ink);font-weight:800}
+
+  .disclaimer{
+    margin:14px 4px 0;
+    font-size:9px;
+    line-height:1.5;
+    text-align:center;
+    color:#A0AEB9;
+  }
+
+  /* ---------- subscription badge ---------- */
+  .sub-badge{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:9px;
+    padding:10px 11px;
+    background:linear-gradient(135deg,#FFEBEE 0%,#FFEBEE 100%);
+    border:1px solid #FFCDD2;
+    border-radius:10px;
+  }
+  .sub-badge .sb-l{
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    min-width:0;
+  }
+  .sub-badge .sb-l strong{
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--brand);
+  }
+  .sub-badge .sb-l span{
+    font-size:9px;
+    color:var(--muted);
+  }
+  .sub-badge .sb-r{
+    font-size:15px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  /* ===== BOPEU app styling bridge ===== */
+  .topbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:3px solid var(--brand);
+    color:var(--ink);
+    padding:12px 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .tb-home{display:flex;align-items:center}
+  .tb-logo{width:46px;height:46px;object-fit:contain}
+  .tb-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+  .tb-text .brand{margin:0;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800;opacity:1;line-height:1.2}
+  .tb-text h1{margin:0;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.25}
+
+  .b-nav{flex:0 0 auto;display:flex;align-items:stretch;background:var(--brand);height:60px;z-index:20}
+  .b-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.03em}
+  .b-nav a img{width:19px;height:19px;object-fit:contain;opacity:.62;filter:brightness(0) invert(1)}
+  .b-nav a span{opacity:.85}
+
+  .form-logos{margin:18px 6px 2px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+  .form-logos img{height:44px;width:auto;object-fit:contain;max-width:46%}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="topbar">
+    <a class="tb-home" href="index.html" title="Back to BOPEU app"><img class="tb-logo" src="../Assets/logo/bopeu_logo.webp" alt="BOPEU"></a>
+    <span class="tb-text">
+      <span class="brand">BOPEU &middot; Babereki Insurance Brokers</span>
+      <h1>Membership Calculator</h1>
+    </span>
+  </div>
+
+  <div class="totalbar">
+    <span class="lbl">Total Monthly<br>Deduction</span>
+    <span class="amt" id="grandTotal">P0.00</span>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ============ MEMBER DETAILS ============ -->
+    <section class="acc open">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Member Details</span>
+          <span class="acc-sub">Main member &middot; personal, contact &amp; employment</span>
+        </span>
+        <span class="acc-total" id="sub-member-label">P0.00</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="person-card">
+          <div class="card-top">
+            <label class="avatar" id="memberAvatar" title="Add profile photo">
+              <input type="file" accept="image/*" data-photo="member" aria-label="Member photo">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2l1.1-1.8A1.5 1.5 0 0 1 9.1 3.5h5.8a1.5 1.5 0 0 1 1.3.7L17.3 6h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/>
+                <circle cx="12" cy="12.5" r="3.4"/>
+              </svg>
+            </label>
+            <div class="card-top-right">
+              <span class="card-label">Main Member</span>
+              <div class="grid-2" style="margin-bottom:0">
+                <div class="field">
+                  <label>Title</label>
+                  <select id="memberTitle">
+                    <option value="">—</option>
+                    <option>Mr</option>
+                    <option>Mrs</option>
+                    <option>Miss</option>
+                    <option>Ms</option>
+                    <option>Dr</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Omang No.</label>
+                  <input type="text" inputmode="numeric" placeholder="ID number" data-field="memberOmang">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subhead">Personal Information</div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Surname</label>
+              <input type="text" placeholder="Surname" autocomplete="off" data-field="memberSurname">
+            </div>
+            <div class="field">
+              <label>First Name</label>
+              <input type="text" placeholder="First name" autocomplete="off" data-field="memberFirst">
+            </div>
+          </div>
+          <div class="field mb">
+            <label>Date of Birth</label>
+            <input type="date" data-field="memberDob">
+          </div>
+
+          <div class="subhead">Contact Details</div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Telephone</label>
+              <input type="tel" inputmode="tel" placeholder="+267 ..." data-field="memberTel">
+            </div>
+            <div class="field">
+              <label>Postal Address</label>
+              <input type="text" placeholder="P.O. Box ..." autocomplete="off" data-field="memberPostal">
+            </div>
+          </div>
+          <div class="field mb">
+            <label>Physical Address</label>
+            <input type="text" placeholder="Plot / Street / Ward" autocomplete="off" data-field="memberPhysical">
+          </div>
+
+          <div class="subhead">Employment</div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Level of Education</label>
+              <input type="text" placeholder="e.g. Degree" autocomplete="off" data-field="memberEducation">
+            </div>
+            <div class="field">
+              <label>Department</label>
+              <input type="text" placeholder="Department" autocomplete="off" data-field="memberDepartment">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>BOPEU Branch</label>
+              <input type="text" placeholder="Branch" autocomplete="off" data-field="memberBranch">
+            </div>
+            <div class="field">
+              <label>Employer</label>
+              <input type="text" placeholder="Employer" autocomplete="off" data-field="memberEmployer">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Designation</label>
+              <input type="text" placeholder="Position" autocomplete="off" data-field="memberDesignation">
+            </div>
+            <div class="field">
+              <label>Basic Salary (P)</label>
+              <input type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" id="memberSalary">
+            </div>
+          </div>
+
+          <div class="sub-badge">
+            <div class="sb-l">
+              <strong>Membership Subscription</strong>
+              <span>1% of basic salary &middot; capped P50.00 – P120.00</span>
+            </div>
+            <span class="sb-r" id="subscriptionFee">P0.00</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ SPOUSE DETAILS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Spouse Details</span>
+          <span class="acc-sub">Wife / Husband &middot; included in compulsory cover</span>
+        </span>
+        <span class="acc-total" id="sub-spouse-label">Included</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="person-card">
+          <div class="card-top">
+            <label class="avatar" id="spouseAvatar" title="Add profile photo">
+              <input type="file" accept="image/*" data-photo="spouse" aria-label="Spouse photo">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2l1.1-1.8A1.5 1.5 0 0 1 9.1 3.5h5.8a1.5 1.5 0 0 1 1.3.7L17.3 6h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/>
+                <circle cx="12" cy="12.5" r="3.4"/>
+              </svg>
+            </label>
+            <div class="card-top-right">
+              <span class="card-label">Spouse</span>
+              <div class="grid-2" style="margin-bottom:0">
+                <div class="field">
+                  <label>Title</label>
+                  <select id="spouseTitle">
+                    <option value="">—</option>
+                    <option>Mr</option>
+                    <option>Mrs</option>
+                    <option>Miss</option>
+                    <option>Ms</option>
+                    <option>Dr</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Omang No.</label>
+                  <input type="text" inputmode="numeric" placeholder="ID number" data-field="spouseOmang">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subhead">Personal Information</div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Surname</label>
+              <input type="text" placeholder="Surname" autocomplete="off" data-field="spouseSurname">
+            </div>
+            <div class="field">
+              <label>First Name</label>
+              <input type="text" placeholder="First name" autocomplete="off" data-field="spouseFirst">
+            </div>
+          </div>
+          <div class="field mb">
+            <label>Date of Birth</label>
+            <input type="date" data-field="spouseDob">
+          </div>
+
+          <div class="subhead">Contact Details</div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Telephone</label>
+              <input type="tel" inputmode="tel" placeholder="+267 ..." data-field="spouseTel">
+            </div>
+            <div class="field">
+              <label>Postal Address</label>
+              <input type="text" placeholder="P.O. Box ..." autocomplete="off" data-field="spousePostal">
+            </div>
+          </div>
+          <div class="field">
+            <label>Physical Address</label>
+            <input type="text" placeholder="Plot / Street / Ward" autocomplete="off" data-field="spousePhysical">
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ CHILDREN ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Children</span>
+          <span class="acc-sub" id="subtext-children">Compulsory &middot; free cover &middot; 0/6</span>
+        </span>
+        <span class="acc-total" id="sub-children">Included</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-children"></div>
+        <p class="empty" id="empty-children">No children added yet</p>
+        <button class="addbtn" type="button" data-add="children">+ Add Child</button>
+        <ul class="notes" style="margin-top:14px">
+          <li><strong>Benefit by age:</strong> 0–6 yrs = P16,250 &middot; 7–15 yrs = P32,500 &middot; 16–21 yrs = P65,000.</li>
+          <li>Compulsory cover for children at no additional cost. Maximum 6 children per policy.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ COMPULSORY FUNERAL COVER ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Compulsory Funeral Cover</span>
+          <span class="acc-sub">Member &amp; immediate family &middot; P65,000 benefit</span>
+        </span>
+        <span class="acc-total" id="sub-compulsory">P61.70</span>
+      </button>
+      <div class="acc-body">
+        <div class="cost-row" style="margin-top:0;padding-top:0;border-top:0">
+          <span class="cr-label">Compulsory cover (member + spouse + children)</span>
+          <span class="cr-amount" id="compulsoryBase">P61.70</span>
+        </div>
+        <label class="pw-toggle" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:12px">
+          <span class="pwt-text">
+            <strong>Add Premium Waiver (12 months)</strong>
+            <span>Dependents keep cover for 12 months if main member passes on</span>
+          </span>
+          <span class="pw"><input type="checkbox" id="compulsoryPW"><span>+P4.70</span></span>
+        </label>
+        <div class="cost-row">
+          <span class="cr-label">Compulsory total</span>
+          <span class="cr-amount" id="compulsoryTotal">P61.70</span>
+        </div>
+        <p class="notes" style="padding-left:0;list-style:none">
+          Benefit for member and spouse is P65,000.00. Children&rsquo;s benefits are illustrated in the Children section above.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ PARENTS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Parents Funeral Cover</span>
+          <span class="acc-sub" id="subtext-parents">Optional &middot; max entry age 80 &middot; 0/4</span>
+        </span>
+        <span class="acc-total" id="sub-parents">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-parents"></div>
+        <p class="empty" id="empty-parents">No parents added yet</p>
+        <button class="addbtn" type="button" data-add="parents">+ Add Parent</button>
+      </div>
+    </section>
+
+    <!-- ============ EXTENDED FAMILY ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Extended Family Cover</span>
+          <span class="acc-sub" id="subtext-extended">Optional &middot; under age 75 &middot; 0/8</span>
+        </span>
+        <span class="acc-total" id="sub-extended">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-extended"></div>
+        <p class="empty" id="empty-extended">No extended family added yet</p>
+        <button class="addbtn" type="button" data-add="extended">+ Add Extended Family Member</button>
+        <ul class="notes" style="margin-top:14px">
+          <li>Eligible: dependents, brothers, sisters, uncles, nephews, nieces, grandparents, grandchildren, second spouse, daughters-in-law, brothers-in-law, sisters-in-law, cousins and aunts.</li>
+          <li>In-laws only available if the member is legally married. Maximum 8 extended family members per policy.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ BANKING & DEDUCTION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Banking &amp; Deduction</span>
+          <span class="acc-sub">Salary / bank deduction authorization</span>
+        </span>
+        <span class="acc-total">&nbsp;</span>
+      </button>
+      <div class="acc-body">
+        <div class="field mb">
+          <label>Bank</label>
+          <input type="text" placeholder="Bank name" autocomplete="off" data-field="bankName">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Account Number</label>
+            <input type="text" inputmode="numeric" placeholder="Account no." data-field="bankAccount">
+          </div>
+          <div class="field">
+            <label>Branch</label>
+            <input type="text" placeholder="Branch" autocomplete="off" data-field="bankBranch">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Deduction Day</label>
+            <select data-field="deductionDay">
+              <option value="">—</option>
+              <option>1st</option><option>5th</option><option>10th</option>
+              <option>15th</option><option>20th</option><option>25th</option>
+              <option>30th</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Salary Group</label>
+            <select data-field="salaryGroup">
+              <option value="">—</option>
+              <option>Group 1</option>
+              <option>Group 2</option>
+            </select>
+          </div>
+        </div>
+        <p class="notes" style="padding-left:0;list-style:none;margin-top:12px">
+          Cut-off date is the 15th of every month. Membership takes effect once the first subscription is deducted.
+          This contract remains in force until cancelled in writing with 3 months&rsquo; calendar notice. Membership
+          ceases if subscription fees are unpaid for 3 consecutive months.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ SUMMARY ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Premium Summary</span>
+          <span class="acc-sub">Breakdown of your monthly deduction</span>
+        </span>
+        <span class="acc-total" id="sub-summary-total">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div class="summary-row">
+          <span class="sr-l">Membership subscription (1% salary)</span>
+          <span class="sr-r" id="sum-subscription">P0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="sr-l">Compulsory funeral cover</span>
+          <span class="sr-r" id="sum-compulsory">P61.70</span>
+        </div>
+        <div class="summary-row">
+          <span class="sr-l">Children (included)</span>
+          <span class="sr-r">P0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="sr-l">Parents</span>
+          <span class="sr-r" id="sum-parents">P0.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="sr-l">Extended family</span>
+          <span class="sr-r" id="sum-extended">P0.00</span>
+        </div>
+        <div class="summary-row total">
+          <span class="sr-l">Total monthly</span>
+          <span class="sr-r" id="sum-total">P0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DECLARATION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Declaration &amp; Consent</span>
+          <span class="acc-sub">Data protection &amp; authorization</span>
+        </span>
+        <span class="acc-total">&nbsp;</span>
+      </button>
+      <div class="acc-body">
+        <p class="consent">
+          By signing this application form, I hereby consent to the collection, processing, and storage of my
+          personal information by <strong>Babereki Insurance Brokers Pty Ltd</strong> for the purpose of evaluating
+          and processing this insurance application, administering any policy issued as a result, and fulfilling
+          any related services.
+        </p>
+        <p class="consent">
+          I also consent to the use of my personal information for marketing purposes, including the promotion of
+          other products and services that may be of interest to me. I understand that my information will be
+          treated with the utmost confidentiality and will not be shared with third parties without my explicit
+          consent, unless required by law.
+        </p>
+        <p class="consent">
+          I acknowledge that I have the right to withdraw my consent at any time by notifying Babereki Insurance
+          Brokers Pty Ltd in writing.
+        </p>
+        <p class="notes" style="padding-left:0;list-style:none">
+          <strong>I authorize</strong> deduction from my salary or directly from my bank account. I understand
+          membership will take effect once the first subscription is deducted from my salary.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ NOTES ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Scheme Notes</span>
+          <span class="acc-sub">Waiting periods, limits &amp; claims</span>
+        </span>
+        <span class="acc-total">&nbsp;</span>
+      </button>
+      <div class="acc-body">
+        <ul class="notes">
+          <li><strong>Subscription fee:</strong> 1% of basic salary, capped from P50.00 to P120.00.</li>
+          <li><strong>Compulsory funeral cover:</strong> P61.70 for member and immediate family (spouse and children). Optional 12-month premium waiver at P66.40.</li>
+          <li><strong>Benefit:</strong> member and spouse P65,000.00. Children&rsquo;s benefits illustrated per age band.</li>
+          <li><strong>Member:</strong> an employee of the Government of the Republic of Botswana or any organization where government has financial interest, who has not attained age 65 years. Policy includes compulsory accidental cover for main member and spouse.</li>
+          <li><strong>Spouse:</strong> legally married, or a union recognized as marriage in accordance with Botswana law and customs, nominated as spouse under this policy.</li>
+          <li><strong>Child:</strong> by birth, step, or adopted (including a child born out of wedlock) under 21 years, extended to 25 years if still in full study. Stillborn child (24+ weeks intra-uterine existence) covered. No age limit for physically or mentally handicapped children with proof of condition.</li>
+          <li><strong>Adult child cover</strong> ceases at 35 years &mdash; the onus is on the parent to change cover to extended family cover.</li>
+          <li><strong>Limits:</strong> maximum 6 children and 8 extended family members per policy.</li>
+          <li><strong>Extended family:</strong> member must be within 5 years of attaining age 60 to nominate, and nominees must be under age 75.</li>
+          <li><strong>Waiting periods:</strong> 1 calendar month for main member and family; 6 months for parents (natural deaths); 12 months for extended family (natural deaths); 24 months for suicide. Immediate cover for accidental death once one month&rsquo;s premium is paid. Following amendment, 6-month waiting period for new benefit.</li>
+          <li><strong>Death benefit ceases</strong> upon termination of membership in writing, failure to pay premiums for 3 consecutive months, or the day the main member dies.</li>
+          <li><strong>Claims:</strong> paid within 48 hours of receiving all requested documents. Notification within 6 months of death; all documents within 12 months.</li>
+          <li><strong>Claims submitted at:</strong> BOPEU branches in Francistown, Kang, Palapye and Maun. For Gaborone and surrounding areas, at Babereki Insurance Brokers Head Office.</li>
+          <li><strong>Participation</strong> in the Group Life Assurance scheme is mandatory for all members.</li>
+          <li>Scheme underwritten by <strong>Bona Life Insurance</strong>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="disclaimer">
+      Rates as per the BOPEU Membership Application Form.<br>
+      Premiums in Botswana Pula (BWP). Underwritten by Bona Life Insurance.
+    </p>
+
+    <div class="form-logos">
+      <img src="../Assets/logo/forms/Babereki_Insurance_Brokers_Logo.webp" alt="Babereki Insurance Brokers">
+      <img src="../Assets/logo/forms/Bona_Life_Logo.webp" alt="Bona Life">
+    </div>
+
+  </div>
+
+  <div class="b-nav">
+    <a href="index.html?tab=0"><img src="../Assets/icons/timeline_icon.webp" alt="Timeline"><span>Timeline</span></a>
+    <a href="index.html?tab=1"><img src="../Assets/icons/notices_icon.webp" alt="Updates"><span>Updates</span></a>
+    <a href="index.html?tab=2"><img src="../Assets/icons/benefits_icon.webp" alt="Benefits"><span>Benefits</span></a>
+    <a href="index.html?tab=3"><img src="../Assets/icons/claims_icon.webp" alt="Card"><span>Card</span></a>
+    <a href="index.html?tab=4"><img src="../Assets/icons/menu_icon.webp" alt="Help"><span>Help</span></a>
+  </div>
+
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ==================== RATES ==================== */
+  var SUBSCRIPTION_MIN = 50.00;
+  var SUBSCRIPTION_MAX = 120.00;
+  var COMPULSORY_BASE = 61.70;
+  var COMPULSORY_PW   = 66.40;
+
+  /* Parents rates (from membership form) */
+  var PARENT_COVERS = [
+    { a: 10000, p: 24.70,  w: 26.50  },
+    { a: 15000, p: 37.00,  w: 39.70  },
+    { a: 20000, p: 49.30,  w: 53.10  },
+    { a: 25000, p: 61.70,  w: 66.30  },
+    { a: 40000, p: 98.60,  w: 106.00 },
+    { a: 50000, p: 123.30, w: 132.50 }
+  ];
+
+  /* Extended family rates */
+  var EXT_COVERS = [
+    { a: 5000,  p: 17.10,  w: 18.40  },
+    { a: 7500,  p: 25.60,  w: 27.50  },
+    { a: 10000, p: 34.10,  w: 36.70  },
+    { a: 15000, p: 51.10,  w: 54.90  },
+    { a: 20000, p: 68.10,  w: 73.20  },
+    { a: 25000, p: 85.20,  w: 91.50  },
+    { a: 30000, p: 102.10, w: 109.70 },
+    { a: 40000, p: 136.30, w: 146.30 },
+    { a: 50000, p: 170.20, w: 183.00 }
+  ];
+
+  var SECTIONS = {
+    parents:  { tag: "Parent",          hasPW: true,  covers: PARENT_COVERS },
+    extended: { tag: "Extended family", hasPW: true,  covers: EXT_COVERS }
+  };
+
+  var LIMITS = { children: 6, parents: 4, extended: 8 };
+  var ADD_LABELS = {
+    children: "+ Add Child",
+    parents:  "+ Add Parent",
+    extended: "+ Add Extended Family Member"
+  };
+  var SUB_BASE_TEXT = {
+    children: "Compulsory \u00b7 free cover",
+    parents:  "Optional \u00b7 max entry age 80",
+    extended: "Optional \u00b7 under age 75"
+  };
+
+  /* ==================== STATE ==================== */
+  var state = {
+    member:   { salary: 0, photo: "" },
+    spouse:   { photo: "" },
+    children: [],
+    parents:  [],
+    extended: [],
+    compulsoryPW: false
+  };
+  var uid = 0;
+  var lastTotal = 0;
+
+  var CAMERA_SVG =
+    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2l1.1-1.8A1.5 1.5 0 0 1 9.1 3.5h5.8a1.5 1.5 0 0 1 1.3.7L17.3 6h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/>' +
+      '<circle cx="12" cy="12.5" r="3.4"/>' +
+    '</svg>';
+
+  /* ==================== HELPERS ==================== */
+  function money(n) {
+    return "P" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function amt(n) {
+    return "P" + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function subscriptionFor(salary) {
+    if (!salary || salary <= 0) return 0;
+    var raw = salary * 0.01;
+    if (raw < SUBSCRIPTION_MIN) return SUBSCRIPTION_MIN;
+    if (raw > SUBSCRIPTION_MAX) return SUBSCRIPTION_MAX;
+    return raw;
+  }
+
+  function childBenefit(dob) {
+    if (!dob) return null;
+    var birth = new Date(dob);
+    if (isNaN(birth.getTime())) return null;
+    var today = new Date();
+    var age = today.getFullYear() - birth.getFullYear();
+    var m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    if (age < 0) return null;
+    if (age <= 6)  return { band: "0–6 yrs",   amount: 16250 };
+    if (age <= 15) return { band: "7–15 yrs",  amount: 32500 };
+    if (age <= 21) return { band: "16–21 yrs", amount: 65000 };
+    return { band: "Over 21", amount: 0 };
+  }
+
+  function costOf(key, item) {
+    var sec = SECTIONS[key];
+    var c = sec.covers[item.cover] || sec.covers[0];
+    return (sec.hasPW && item.pw) ? c.w : c.p;
+  }
+  function findItem(row) {
+    var key = row.getAttribute("data-key");
+    var id = Number(row.getAttribute("data-id"));
+    var arr = state[key] || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i];
+    return null;
+  }
+  function applyPhoto(rowEl, dataUrl) {
+    var av = rowEl.querySelector(".avatar");
+    if (!av) return;
+    av.style.backgroundImage = "url(" + dataUrl + ")";
+    av.classList.add("has-photo");
+    var svg = av.querySelector("svg");
+    if (svg) svg.style.display = "none";
+  }
+  function buildAvatar(cls, photo, label) {
+    return '<label class="avatar ' + cls + (photo ? " has-photo" : "") + '" title="' + label + '">' +
+      '<input type="file" accept="image/*" aria-label="' + label + '">' +
+      CAMERA_SVG +
+    '</label>';
+  }
+
+  /* ==================== BUILD CARDS ==================== */
+
+  /* ---------- children ---------- */
+  function buildChildEl(item, index) {
+    var el = document.createElement("div");
+    el.className = "person";
+    el.setAttribute("data-key", "children");
+    el.setAttribute("data-id", item.id);
+
+    el.innerHTML =
+      '<div class="p-top">' +
+        buildAvatar("avatar-sm", item.photo, "Child photo") +
+        '<div class="p-id">' +
+          '<span class="p-tag">Child ' + index + '</span>' +
+          '<input class="nameinput" type="text" placeholder="Surname" data-f="surname" value="' + esc(item.surname) + '" autocomplete="off">' +
+          '<input class="nameinput" type="text" placeholder="First name" data-f="firstname" value="' + esc(item.firstname) + '" autocomplete="off">' +
+        '</div>' +
+        '<button class="x" type="button" aria-label="Remove">&times;</button>' +
+      '</div>' +
+      '<div class="grid-2" style="margin-bottom:0">' +
+        '<div class="field">' +
+          '<label>Date of Birth</label>' +
+          '<input type="date" data-f="dob" value="' + esc(item.dob) + '">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Relationship</label>' +
+          '<input type="text" placeholder="e.g. Son" data-f="relationship" value="' + esc(item.relationship) + '" autocomplete="off">' +
+        '</div>' +
+      '</div>' +
+      '<div class="benefit-pill">' +
+        '<span class="bp-label">Benefit</span>' +
+        '<span class="bp-band" data-band>—</span>' +
+        '<span class="bp-amount" data-benefit>—</span>' +
+      '</div>';
+
+    if (item.photo) applyPhoto(el, item.photo);
+    refreshChildBenefit(el, item);
+    return el;
+  }
+
+  function refreshChildBenefit(rowEl, item) {
+    var b = childBenefit(item.dob);
+    var amtEl = rowEl.querySelector("[data-benefit]");
+    var bandEl = rowEl.querySelector("[data-band]");
+    if (!amtEl || !bandEl) return;
+    if (b) {
+      amtEl.textContent = amt(b.amount);
+      bandEl.textContent = b.band;
+    } else {
+      amtEl.textContent = "—";
+      bandEl.textContent = "—";
+    }
+  }
+
+  /* ---------- parents / extended (cover-bearing) ---------- */
+  function buildCoverEl(key, item, index) {
+    var sec = SECTIONS[key];
+    var el = document.createElement("div");
+    el.className = "person";
+    el.setAttribute("data-key", key);
+    el.setAttribute("data-id", item.id);
+
+    var opts = sec.covers.map(function (cv, ci) {
+      return '<option value="' + ci + '"' + (ci === item.cover ? " selected" : "") + '>' +
+             amt(cv.a) + '</option>';
+    }).join("");
+
+    var pwBox = sec.hasPW
+      ? '<label class="pw"><input type="checkbox" data-pw' + (item.pw ? " checked" : "") + '><span>PW</span></label>'
+      : "";
+
+    el.innerHTML =
+      '<div class="p-top">' +
+        buildAvatar("avatar-sm", item.photo, sec.tag + " photo") +
+        '<div class="p-id">' +
+          '<span class="p-tag">' + sec.tag + " " + index + '</span>' +
+          '<input class="nameinput" type="text" placeholder="Surname" data-f="surname" value="' + esc(item.surname) + '" autocomplete="off">' +
+          '<input class="nameinput" type="text" placeholder="First name" data-f="firstname" value="' + esc(item.firstname) + '" autocomplete="off">' +
+        '</div>' +
+        '<button class="x" type="button" aria-label="Remove">&times;</button>' +
+      '</div>' +
+      '<div class="grid-2" style="margin-bottom:0">' +
+        '<div class="field">' +
+          '<label>Date of Birth</label>' +
+          '<input type="date" data-f="dob" value="' + esc(item.dob) + '">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Omang No.</label>' +
+          '<input type="text" inputmode="numeric" placeholder="ID number" data-f="omang" value="' + esc(item.omang) + '">' +
+        '</div>' +
+      '</div>' +
+      '<div class="grid-2" style="margin-top:8px;margin-bottom:0">' +
+        '<div class="field">' +
+          '<label>Relationship</label>' +
+          '<input type="text" placeholder="e.g. Mother" data-f="relationship" value="' + esc(item.relationship) + '" autocomplete="off">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Cover Amount</label>' +
+          '<select data-cover>' + opts + '</select>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cost-row">' +
+        pwBox +
+        '<span class="cr-label" style="margin-left:auto">Adds</span>' +
+        '<span class="cr-amount" data-cost>' + money(costOf(key, item)) + '</span>' +
+      '</div>';
+
+    if (item.photo) applyPhoto(el, item.photo);
+    return el;
+  }
+
+  /* ==================== RENUMBER ==================== */
+  function renumber(key) {
+    var list = document.getElementById("list-" + key);
+    var sec = SECTIONS[key];
+    if (!list || !sec) return;
+    var rows = list.querySelectorAll(".person");
+    Array.prototype.forEach.call(rows, function (r, i) {
+      var t = r.querySelector(".p-tag");
+      if (t) t.textContent = sec.tag + " " + (i + 1);
+    });
+  }
+  function renumberChildren() {
+    var list = document.getElementById("list-children");
+    var rows = list.querySelectorAll(".person");
+    Array.prototype.forEach.call(rows, function (r, i) {
+      var t = r.querySelector(".p-tag");
+      if (t) t.textContent = "Child " + (i + 1);
+    });
+  }
+
+  /* ==================== TOTALS ==================== */
+  function updateTotals() {
+    var subscription = subscriptionFor(state.member.salary);
+    document.getElementById("subscriptionFee").textContent = money(subscription);
+
+    var compulsory = state.compulsoryPW ? COMPULSORY_PW : COMPULSORY_BASE;
+    document.getElementById("compulsoryBase").textContent = money(COMPULSORY_BASE);
+    document.getElementById("compulsoryTotal").textContent = money(compulsory);
+    document.getElementById("sub-compulsory").textContent = money(compulsory);
+    document.getElementById("sub-member-label").textContent = money(subscription);
+
+    var parentTotal = 0;
+    state.parents.forEach(function (it) {
+      var c = costOf("parents", it);
+      parentTotal += c;
+      var row = document.querySelector('.person[data-key="parents"][data-id="' + it.id + '"]');
+      if (row) {
+        var el = row.querySelector("[data-cost]");
+        if (el) el.textContent = money(c);
+      }
+    });
+    document.getElementById("sub-parents").textContent = money(parentTotal);
+
+    var extTotal = 0;
+    state.extended.forEach(function (it) {
+      var c = costOf("extended", it);
+      extTotal += c;
+      var row = document.querySelector('.person[data-key="extended"][data-id="' + it.id + '"]');
+      if (row) {
+        var el = row.querySelector("[data-cost]");
+        if (el) el.textContent = money(c);
+      }
+    });
+    document.getElementById("sub-extended").textContent = money(extTotal);
+
+    document.getElementById("sub-children").textContent = "Included";
+
+    /* subtexts with counters */
+    var st;
+    st = document.getElementById("subtext-children");
+    if (st) st.textContent = SUB_BASE_TEXT.children + " \u00b7 " + state.children.length + "/" + LIMITS.children;
+    st = document.getElementById("subtext-parents");
+    if (st) st.textContent = SUB_BASE_TEXT.parents + " \u00b7 " + state.parents.length + "/" + LIMITS.parents;
+    st = document.getElementById("subtext-extended");
+    if (st) st.textContent = SUB_BASE_TEXT.extended + " \u00b7 " + state.extended.length + "/" + LIMITS.extended;
+
+    /* empties */
+    ["children", "parents", "extended"].forEach(function (k) {
+      var e = document.getElementById("empty-" + k);
+      if (e) e.style.display = state[k].length ? "none" : "block";
+      var btn = document.querySelector('[data-add="' + k + '"]');
+      if (btn) {
+        var full = state[k].length >= LIMITS[k];
+        btn.disabled = full;
+        btn.textContent = full ? "Limit reached (" + LIMITS[k] + "/" + LIMITS[k] + ")" : ADD_LABELS[k];
+      }
+    });
+
+    var grand = subscription + compulsory + parentTotal + extTotal;
+
+    /* summary */
+    document.getElementById("sum-subscription").textContent = money(subscription);
+    document.getElementById("sum-compulsory").textContent   = money(compulsory);
+    document.getElementById("sum-parents").textContent      = money(parentTotal);
+    document.getElementById("sum-extended").textContent     = money(extTotal);
+    document.getElementById("sum-total").textContent        = money(grand);
+    document.getElementById("sub-summary-total").textContent = money(grand);
+
+    var el = document.getElementById("grandTotal");
+    el.textContent = money(grand);
+    if (Math.abs(grand - lastTotal) > 0.001) {
+      el.classList.add("pop");
+      setTimeout(function () { el.classList.remove("pop"); }, 160);
+      lastTotal = grand;
+    }
+  }
+
+  /* ==================== ADD / REMOVE ==================== */
+  function addPerson(key) {
+    if (state[key].length >= LIMITS[key]) return;
+
+    var base = { id: ++uid, photo: "", surname: "", firstname: "", dob: "", relationship: "" };
+    var item;
+    if (key === "children") {
+      item = base;
+    } else {
+      item = Object.assign({}, base, { omang: "", cover: 0, pw: false });
+    }
+    state[key].push(item);
+
+    var list = document.getElementById("list-" + key);
+    var el = (key === "children")
+      ? buildChildEl(item, state[key].length)
+      : buildCoverEl(key, item, state[key].length);
+    list.appendChild(el);
+
+    updateTotals();
+
+    var ni = el.querySelector(".nameinput");
+    if (ni) { try { ni.focus({ preventScroll: true }); } catch (e) { ni.focus(); } }
+  }
+
+  function removePerson(row) {
+    var key = row.getAttribute("data-key");
+    var id = Number(row.getAttribute("data-id"));
+    state[key] = state[key].filter(function (i) { return i.id !== id; });
+    row.remove();
+    if (key === "children") renumberChildren();
+    else renumber(key);
+    updateTotals();
+  }
+
+  /* ==================== EVENTS ==================== */
+  var scroll = document.getElementById("scroll");
+
+  scroll.addEventListener("click", function (e) {
+    var head = e.target.closest(".acc-head");
+    if (head) { head.parentElement.classList.toggle("open"); return; }
+
+    var add = e.target.closest(".addbtn");
+    if (add) {
+      if (add.disabled) return;
+      addPerson(add.getAttribute("data-add"));
+      return;
+    }
+
+    var x = e.target.closest(".x");
+    if (x) {
+      var row = x.closest(".person");
+      if (row) removePerson(row);
+    }
+  });
+
+  /* text input — names, omang, relationship, dob */
+  scroll.addEventListener("input", function (e) {
+    var t = e.target;
+
+    /* salary → subscription */
+    if (t.id === "memberSalary") {
+      var v = parseFloat(t.value);
+      state.member.salary = isNaN(v) ? 0 : v;
+      updateTotals();
+      return;
+    }
+
+    var row = t.closest(".person");
+    if (!row) return;
+    var item = findItem(row);
+    if (!item) return;
+
+    var f = t.getAttribute("data-f");
+    if (f) {
+      item[f] = t.value;
+      if (f === "dob" && row.getAttribute("data-key") === "children") {
+        refreshChildBenefit(row, item);
+      }
+    }
+  });
+
+  /* change — selects, checkboxes, dates (also), file */
+  scroll.addEventListener("change", function (e) {
+    var t = e.target;
+
+    /* compulsory PW */
+    if (t.id === "compulsoryPW") {
+      state.compulsoryPW = t.checked;
+      updateTotals();
+      return;
+    }
+
+    /* member photo */
+    if (t.getAttribute && t.getAttribute("data-photo") === "member") {
+      var mf = t.files && t.files[0];
+      if (!mf) return;
+      var mr = new FileReader();
+      mr.onload = function (ev) {
+        state.member.photo = ev.target.result;
+        applyPhoto(document.getElementById("memberAvatar").closest(".person-card") || document.getElementById("memberAvatar").parentElement, state.member.photo);
+        var av = document.getElementById("memberAvatar");
+        av.style.backgroundImage = "url(" + state.member.photo + ")";
+        av.classList.add("has-photo");
+        var svg = av.querySelector("svg");
+        if (svg) svg.style.display = "none";
+      };
+      mr.readAsDataURL(mf);
+      return;
+    }
+
+    /* spouse photo */
+    if (t.getAttribute && t.getAttribute("data-photo") === "spouse") {
+      var sf = t.files && t.files[0];
+      if (!sf) return;
+      var sr = new FileReader();
+      sr.onload = function (ev) {
+        state.spouse.photo = ev.target.result;
+        var av = document.getElementById("spouseAvatar");
+        av.style.backgroundImage = "url(" + state.spouse.photo + ")";
+        av.classList.add("has-photo");
+        var svg = av.querySelector("svg");
+        if (svg) svg.style.display = "none";
+      };
+      sr.readAsDataURL(sf);
+      return;
+    }
+
+    var row = t.closest(".person");
+    if (!row) return;
+    var item = findItem(row);
+    if (!item) return;
+
+    /* photo upload for dynamic persons */
+    if (t.type === "file") {
+      var file = t.files && t.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        item.photo = ev.target.result;
+        applyPhoto(row, item.photo);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    /* cover amount */
+    if (t.hasAttribute("data-cover")) {
+      item.cover = Number(t.value);
+      updateTotals();
+      return;
+    }
+
+    /* PW checkbox */
+    if (t.hasAttribute("data-pw")) {
+      item.pw = t.checked;
+      updateTotals();
+      return;
+    }
+
+    /* DOB via date picker (change fires too) */
+    var f = t.getAttribute("data-f");
+    if (f) {
+      item[f] = t.value;
+      if (f === "dob" && row.getAttribute("data-key") === "children") {
+        refreshChildBenefit(row, item);
+      }
+    }
+  });
+
+  /* ==================== BOOT ==================== */
+  updateTotals();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BOPEU Funeral Cover Calculator</title>
+<style>
+  :root{
+    --ink:#1A202C;
+    --muted:#718096;
+    --line:#E2E8F0;
+    --brand:#D32F2F;
+    --brand2:#B71C1C;
+    --danger:#B71C1C;
+    --soft:#F4F5F7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%}
+  body{
+    margin:0;
+    height:100dvh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:#E9ECEF;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+  }
+  .phone{
+    width:100%;
+    max-width:400px;
+    height:100dvh;
+    max-height:860px;
+    background:#F4F5F7;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+  @media (min-width:430px){
+    .phone{border-radius:30px;box-shadow:0 34px 70px rgba(0,0,0,.55);height:820px}
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    flex:0 0 auto;
+    background:linear-gradient(135deg,#D32F2F 0%,#B71C1C 100%);
+    color:#fff;
+    padding:16px 18px 14px;
+  }
+  .brand{
+    font-size:9.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    opacity:.78;
+    font-weight:700;
+  }
+  .topbar h1{
+    margin:3px 0 0;
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:-.01em;
+  }
+
+  /* ---------- sticky total ---------- */
+  .totalbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:11px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+    position:relative;
+    z-index:6;
+  }
+  .totalbar .lbl{
+    font-size:9.5px;
+    font-weight:800;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--muted);
+    line-height:1.3;
+  }
+  .totalbar .amt{
+    font-size:25px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+    transition:transform .16s ease;
+    transform-origin:right center;
+  }
+  .totalbar .amt.pop{transform:scale(1.07)}
+
+  /* ---------- scroll area ---------- */
+  .scroll{
+    flex:1 1 auto;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    padding:12px 12px 26px;
+  }
+
+  /* ---------- accordion ---------- */
+  .acc{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:10px;
+    overflow:hidden;
+    transition:box-shadow .2s ease,border-color .2s ease;
+  }
+  .acc.open{
+    border-color:#FFCDD2;
+    box-shadow:0 8px 20px rgba(211,47,47,.10);
+  }
+  .acc-head{
+    width:100%;
+    border:0;
+    background:transparent;
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+    padding:14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    transition:background .18s ease;
+  }
+  .acc.open .acc-head{background:#FFEBEE}
+  .acc-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .acc-title{
+    font-size:13.5px;
+    font-weight:800;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .acc-sub{
+    font-size:10.5px;
+    font-weight:500;
+    color:var(--muted);
+    line-height:1.25;
+  }
+  .acc-total{
+    font-size:13.5px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .acc-body{
+    display:none;
+    padding:4px 14px 14px;
+    border-top:1px solid var(--line);
+  }
+  .acc.open .acc-body{display:block}
+
+  /* ---------- member fixed cover ---------- */
+  .fixed-cover{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .fc-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .fc-left strong{font-size:12.5px;font-weight:800;color:var(--ink)}
+  .fc-left span{font-size:10px;color:var(--muted)}
+  .fc-badge{
+    font-size:9px;font-weight:800;letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--brand);
+    background:#FFEBEE;
+    border:1px solid #EF9A9A;
+    border-radius:20px;
+    padding:4px 9px;
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+
+  /* ---------- compulsory PW toggle ---------- */
+  .pw-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 0 4px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .pwt-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .pwt-text strong{font-size:12.5px;font-weight:800;color:var(--ink)}
+  .pwt-text span{font-size:10px;color:var(--muted);line-height:1.3}
+
+  .hint{
+    margin:6px 0 0;
+    font-size:10.5px;
+    line-height:1.5;
+    color:var(--muted);
+  }
+
+  /* ---------- person rows ---------- */
+  .person{
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .person:last-child{border-bottom:0}
+
+  .member-card{
+    margin:8px 0 0;
+    padding:12px;
+    background:#F8FAFB;
+    border:1px solid var(--line);
+    border-radius:12px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .p-top{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+
+  .avatar{
+    position:relative;
+    flex:0 0 auto;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    border:1.5px dashed #b9c7d1;
+    background:#F7F9FB center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    overflow:hidden;
+    transition:border-color .15s ease,background-color .15s ease;
+  }
+  .avatar:active{border-color:var(--brand);background-color:#FFEBEE}
+  .avatar.has-photo{border-style:solid;border-color:#EF9A9A}
+  .avatar svg{
+    width:21px;height:21px;
+    fill:none;stroke:#A0AEB9;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round;
+    pointer-events:none;
+  }
+  .avatar input[type=file]{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    opacity:0;cursor:pointer;
+  }
+
+  .p-id{
+    flex:1 1 auto;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .p-tag{
+    font-size:9.5px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    line-height:1;
+  }
+  .nameinput{
+    width:100%;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 10px;
+  }
+  .nameinput::placeholder{font-weight:600;color:#a8b4be}
+  .nameinput:focus{outline:2px solid #EF9A9A;outline-offset:-1px;background:#fff}
+
+  .x{
+    flex:0 0 auto;
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1px solid #f2d6ce;
+    background:#fff5f1;
+    color:var(--danger);
+    font-size:15px;
+    line-height:1;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition:background .15s ease,transform .1s ease;
+  }
+  .x:active{background:#ffe4da;transform:scale(.92)}
+
+  .p-row{display:flex;align-items:center;gap:8px}
+
+  select{
+    flex:1 1 auto;
+    min-width:0;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 8px;
+    cursor:pointer;
+  }
+  select:focus{outline:2px solid #EF9A9A;outline-offset:-1px}
+
+  .pw{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.06em;
+    color:var(--muted);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 9px;
+    white-space:nowrap;
+    cursor:pointer;
+    user-select:none;
+    flex:0 0 auto;
+  }
+  .pw input{
+    width:14px;height:14px;margin:0;
+    accent-color:var(--brand);
+    cursor:pointer;
+  }
+  .pw:has(input:checked){
+    background:#FFEBEE;
+    border-color:#EF9A9A;
+    color:var(--brand);
+  }
+
+  .p-cost{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    line-height:1.15;
+    min-width:64px;
+    flex:0 0 auto;
+  }
+  .p-cost i{
+    font-style:normal;
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .p-cost b{
+    font-size:13px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- add button ---------- */
+  .addbtn{
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    border-radius:11px;
+    border:1px dashed #EF9A9A;
+    background:#FFEBEE;
+    color:var(--brand);
+    font-family:inherit;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.03em;
+    cursor:pointer;
+    transition:background .15s ease,transform .1s ease,opacity .15s ease;
+  }
+  .addbtn:active{background:#FFCDD2;transform:scale(.985)}
+  .addbtn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    background:#F4F5F7;
+    border-color:#D9E1E8;
+    color:#A0AEB9;
+  }
+  .addbtn:disabled:active{transform:none;background:#F4F5F7}
+
+  .empty{
+    margin:14px 0 2px;
+    text-align:center;
+    font-size:11.5px;
+    color:#A0AEB9;
+    font-weight:600;
+  }
+
+  /* ---------- notes ---------- */
+  .notes{
+    margin:10px 0 0;
+    padding-left:16px;
+    font-size:11px;
+    line-height:1.65;
+    color:var(--muted);
+  }
+  .notes li{margin-bottom:6px}
+  .notes li::marker{color:#EF9A9A}
+  .notes strong{color:var(--ink);font-weight:800}
+
+  .disclaimer{
+    margin:16px 4px 0;
+    font-size:9.5px;
+    line-height:1.5;
+    text-align:center;
+    color:#A0AEB9;
+  }
+  /* ===== BOPEU app styling bridge ===== */
+  .topbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:3px solid var(--brand);
+    color:var(--ink);
+    padding:12px 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .tb-home{display:flex;align-items:center}
+  .tb-logo{width:46px;height:46px;object-fit:contain}
+  .tb-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+  .tb-text .brand{margin:0;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800;opacity:1;line-height:1.2}
+  .tb-text h1{margin:0;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.25}
+
+  .b-nav{flex:0 0 auto;display:flex;align-items:stretch;background:var(--brand);height:60px;z-index:20}
+  .b-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.03em}
+  .b-nav a img{width:19px;height:19px;object-fit:contain;opacity:.62;filter:brightness(0) invert(1)}
+  .b-nav a span{opacity:.85}
+
+  .form-logos{margin:18px 6px 2px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+  .form-logos img{height:44px;width:auto;object-fit:contain;max-width:46%}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="topbar">
+    <a class="tb-home" href="index.html" title="Back to BOPEU app"><img class="tb-logo" src="../Assets/logo/bopeu_logo.webp" alt="BOPEU"></a>
+    <span class="tb-text">
+      <span class="brand">BOPEU &middot; Babereki Life Insurance</span>
+      <h1>Funeral Cover Calculator</h1>
+    </span>
+  </div>
+
+  <div class="totalbar">
+    <span class="lbl">Total Monthly<br>Premium</span>
+    <span class="amt" id="grandTotal">P61.70</span>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- MEMBER & IMMEDIATE FAMILY -->
+    <section class="acc open">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Member &amp; Immediate Family</span>
+          <span class="acc-sub">Compulsory &middot; member, spouse &amp; children</span>
+        </span>
+        <span class="acc-total" id="sub-member">P61.70</span>
+      </button>
+      <div class="acc-body">
+        <div id="member-card"></div>
+        <div class="fixed-cover">
+          <div class="fc-left">
+            <strong>Funeral Cover P65,000</strong>
+            <span>Member &amp; spouse &middot; children per scheme</span>
+          </div>
+          <span class="fc-badge">Included</span>
+        </div>
+        <label class="pw-toggle">
+          <span class="pwt-text">
+            <strong>Premium Waiver (12 months)</strong>
+            <span>Dependents continue cover if main member passes on</span>
+          </span>
+          <span class="pw"><input type="checkbox" id="compulsoryPW"><span>+P4.70</span></span>
+        </label>
+        <p class="hint">Compulsory cover of P61.70 for member and immediate family. Optional 12-month premium waiver adds P4.70, bringing cover to P66.40.</p>
+      </div>
+    </section>
+
+    <!-- PARENTS -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Parents Funeral Cover</span>
+          <span class="acc-sub" id="subtext-parents">Add each parent separately &middot; 0/4</span>
+        </span>
+        <span class="acc-total" id="sub-parents">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-parents"></div>
+        <p class="empty" id="empty-parents">Nothing added yet</p>
+        <button class="addbtn" type="button" data-add="parents">+ Add Parent</button>
+      </div>
+    </section>
+
+    <!-- EXTENDED FAMILY -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Extended Family Cover</span>
+          <span class="acc-sub" id="subtext-extended">Uncles, aunts, cousins, in-laws &middot; 0/8</span>
+        </span>
+        <span class="acc-total" id="sub-extended">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-extended"></div>
+        <p class="empty" id="empty-extended">Nothing added yet</p>
+        <button class="addbtn" type="button" data-add="extended">+ Add Extended Family Member</button>
+      </div>
+    </section>
+
+    <!-- CHILDREN OVER 21 -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Children&rsquo;s Cover Over 21</span>
+          <span class="acc-sub" id="subtext-children">P30,000 &middot; P40,000 &middot; P50,000 &middot; 0/6</span>
+        </span>
+        <span class="acc-total" id="sub-children">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-children"></div>
+        <p class="empty" id="empty-children">Nothing added yet</p>
+        <button class="addbtn" type="button" data-add="children">+ Add Child Over 21</button>
+      </div>
+    </section>
+
+    <!-- ADULT CHILD -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Adult Child Cover (Over 35)</span>
+          <span class="acc-sub" id="subtext-adult">Converted to Extended Family cover &middot; 0/8</span>
+        </span>
+        <span class="acc-total" id="sub-adult">P0.00</span>
+      </button>
+      <div class="acc-body">
+        <div id="list-adult"></div>
+        <p class="empty" id="empty-adult">Nothing added yet</p>
+        <button class="addbtn" type="button" data-add="adult">+ Add Adult Child</button>
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Scheme Notes</span>
+          <span class="acc-sub">Waiting periods, limits &amp; claims</span>
+        </span>
+        <span class="acc-total">&nbsp;</span>
+      </button>
+      <div class="acc-body">
+        <ul class="notes">
+          <li><strong>Subscription fee</strong> is 1% of basic salary (capped P50.00 &ndash; P120.00).</li>
+          <li><strong>Compulsory funeral cover</strong> of P61.70 for member and immediate family, with optional 12-month premium waiver at P66.40.</li>
+          <li><strong>Benefit</strong> for member and spouse is P65,000.00. Children&rsquo;s benefits illustrated in the scheme.</li>
+          <li><strong>Limits:</strong> maximum of 6 children and 8 extended family members per policy.</li>
+          <li><strong>Extended family</strong> must be under age 75 and can include dependents, brothers, sisters, uncles, nephews, nieces, grandparents, grandchildren, second spouse, daughters-in-law, brothers-in-law, sisters-in-law, cousins and aunts. In-laws only if legally married.</li>
+          <li><strong>Adult child cover</strong> ceases at 35 years &mdash; the onus is on the parent to change cover to extended family cover.</li>
+          <li><strong>Waiting periods:</strong> 3 months for main member and family; 6 months for parents (natural deaths); 12 months for extended family (natural deaths); 24 months for suicide. Immediate cover for accidental death once one month&rsquo;s premium is paid.</li>
+          <li><strong>Amendment waiting period:</strong> 12 months for any new benefit added.</li>
+          <li><strong>Membership ceases</strong> if subscriptions are unpaid for 3 consecutive months. Reinstatement attracts waiting periods.</li>
+          <li><strong>Cancellation</strong> requires 3 months&rsquo; written notice. No claims or refunds after cancellation.</li>
+          <li><strong>Claims</strong> paid within 48 hours of receiving all requested documents. Notification within 6 months of death; all documents within 12 months.</li>
+          <li><strong>Data protection:</strong> personal data processed under the Botswana Data Protection Act, 2018 (as amended 2024). KYC and transaction records retained for 20 years per the Financial Intelligence Act.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="disclaimer">
+      Rates as per the BOPEU Group Funeral Scheme &amp; Extended Family Application Form.<br>
+      Premiums in Botswana Pula (BWP). Underwritten by Babereki Life Insurance Company (BLIC).
+    </p>
+
+    <div class="form-logos">
+      <img src="../Assets/logo/forms/Babereki_Insurance_Brokers_Logo.webp" alt="Babereki Insurance Brokers">
+      <img src="../Assets/logo/forms/Bona_Life_Logo.webp" alt="Bona Life">
+    </div>
+
+  </div>
+
+  <div class="b-nav">
+    <a href="index.html?tab=0"><img src="../Assets/icons/timeline_icon.webp" alt="Timeline"><span>Timeline</span></a>
+    <a href="index.html?tab=1"><img src="../Assets/icons/notices_icon.webp" alt="Updates"><span>Updates</span></a>
+    <a href="index.html?tab=2"><img src="../Assets/icons/benefits_icon.webp" alt="Benefits"><span>Benefits</span></a>
+    <a href="index.html?tab=3"><img src="../Assets/icons/claims_icon.webp" alt="Card"><span>Card</span></a>
+    <a href="index.html?tab=4"><img src="../Assets/icons/menu_icon.webp" alt="Help"><span>Help</span></a>
+  </div>
+
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- rates ---------- */
+  var COMPULSORY_BASE = 61.70;
+  var COMPULSORY_PW   = 66.40;
+
+  var EXT = [
+    { a: 5000,  p: 17.10,  w: 18.40  },
+    { a: 7500,  p: 25.60,  w: 27.50  },
+    { a: 10000, p: 34.10,  w: 36.70  },
+    { a: 15000, p: 51.10,  w: 54.90  },
+    { a: 20000, p: 68.10,  w: 73.20  },
+    { a: 25000, p: 85.20,  w: 91.50  },
+    { a: 30000, p: 102.10, w: 109.70 },
+    { a: 40000, p: 136.30, w: 146.30 },
+    { a: 50000, p: 170.20, w: 183.00 }
+  ];
+
+  var SECTIONS = {
+    parents: {
+      tag: "Parent",
+      hasPW: true,
+      covers: [
+        { a: 10000, p: 24.70,  w: 26.50  },
+        { a: 15000, p: 37.00,  w: 39.70  },
+        { a: 20000, p: 49.30,  w: 53.10  },
+        { a: 25000, p: 61.70,  w: 66.30  },
+        { a: 40000, p: 98.60,  w: 106.00 },
+        { a: 50000, p: 123.30, w: 132.50 }
+      ]
+    },
+    extended: { tag: "Extended family", hasPW: true, covers: EXT },
+    children: {
+      tag: "Child 21+",
+      hasPW: false,
+      covers: [
+        { a: 30000, p: 8.50  },
+        { a: 40000, p: 11.30 },
+        { a: 50000, p: 14.10 }
+      ]
+    },
+    adult: { tag: "Adult child", hasPW: true, covers: EXT }
+  };
+
+  var LIMITS = {
+    parents: 4,
+    extended: 8,
+    children: 6,
+    adult: 8
+  };
+
+  var ADD_LABELS = {
+    parents: "+ Add Parent",
+    extended: "+ Add Extended Family Member",
+    children: "+ Add Child Over 21",
+    adult: "+ Add Adult Child"
+  };
+
+  var SUB_BASE = {
+    parents: "Add each parent separately",
+    extended: "Uncles, aunts, cousins, in-laws",
+    children: "P30,000 \u00b7 P40,000 \u00b7 P50,000",
+    adult: "Converted to Extended Family cover"
+  };
+
+  /* ---------- state ---------- */
+  var member = { name: "", photo: "" };
+  var compulsoryPW = false;
+  var state = { parents: [], extended: [], children: [], adult: [] };
+  var uid = 0;
+  var lastTotal = COMPULSORY_BASE;
+
+  var CAMERA_SVG =
+    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2l1.1-1.8A1.5 1.5 0 0 1 9.1 3.5h5.8a1.5 1.5 0 0 1 1.3.7L17.3 6h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/>' +
+      '<circle cx="12" cy="12.5" r="3.4"/>' +
+    '</svg>';
+
+  /* ---------- helpers ---------- */
+  function money(n) {
+    return "P" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function amt(n) {
+    return "P" + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+  function costOf(key, item) {
+    var sec = SECTIONS[key];
+    var c = sec.covers[item.cover] || sec.covers[0];
+    return (sec.hasPW && item.pw) ? c.w : c.p;
+  }
+  function findItem(row) {
+    var key = row.getAttribute("data-key");
+    var id = Number(row.getAttribute("data-id"));
+    var arr = state[key] || [];
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i].id === id) return arr[i];
+    }
+    return null;
+  }
+
+  /* ---------- member card ---------- */
+  function buildMemberCard() {
+    var el = document.createElement("div");
+    el.className = "person member-card";
+    el.innerHTML =
+      '<div class="p-top">' +
+        '<label class="avatar' + (member.photo ? " has-photo" : "") + '" title="Add profile photo">' +
+          '<input type="file" accept="image/*" aria-label="Add your profile photo">' +
+          CAMERA_SVG +
+        '</label>' +
+        '<div class="p-id">' +
+          '<span class="p-tag">Main Member</span>' +
+          '<input class="nameinput" type="text" placeholder="Your full name" ' +
+                 'autocomplete="off" value="' + esc(member.name) + '">' +
+        '</div>' +
+      '</div>';
+    if (member.photo) applyPhoto(el, member.photo);
+    return el;
+  }
+
+  /* ---------- person card ---------- */
+  function buildPersonEl(key, item, index) {
+    var sec = SECTIONS[key];
+    var el = document.createElement("div");
+    el.className = "person";
+    el.setAttribute("data-key", key);
+    el.setAttribute("data-id", item.id);
+
+    var opts = sec.covers.map(function (cv, ci) {
+      return '<option value="' + ci + '"' + (ci === item.cover ? " selected" : "") + ">" +
+             amt(cv.a) + "</option>";
+    }).join("");
+
+    var pw = sec.hasPW
+      ? '<label class="pw"><input type="checkbox" data-pw' + (item.pw ? " checked" : "") +
+        '><span>PW</span></label>'
+      : "";
+
+    el.innerHTML =
+      '<div class="p-top">' +
+        '<label class="avatar' + (item.photo ? " has-photo" : "") + '" title="Add profile photo">' +
+          '<input type="file" accept="image/*" aria-label="Add profile photo">' +
+          CAMERA_SVG +
+        '</label>' +
+        '<div class="p-id">' +
+          '<span class="p-tag">' + sec.tag + " " + index + '</span>' +
+          '<input class="nameinput" type="text" placeholder="Full name" ' +
+                 'autocomplete="off" value="' + esc(item.name) + '">' +
+        '</div>' +
+        '<button class="x" type="button" aria-label="Remove">&times;</button>' +
+      '</div>' +
+      '<div class="p-row">' +
+        '<select data-cover aria-label="Cover amount">' + opts + '</select>' +
+        pw +
+        '<span class="p-cost"><i>adds</i><b>' + money(costOf(key, item)) + '</b></span>' +
+      '</div>';
+
+    if (item.photo) applyPhoto(el, item.photo);
+    return el;
+  }
+
+  function applyPhoto(rowEl, dataUrl) {
+    var av = rowEl.querySelector(".avatar");
+    if (!av) return;
+    av.style.backgroundImage = "url(" + dataUrl + ")";
+    av.classList.add("has-photo");
+    var svg = av.querySelector("svg");
+    if (svg) svg.style.display = "none";
+  }
+
+  /* ---------- renumber labels ---------- */
+  function renumber(key) {
+    var list = document.getElementById("list-" + key);
+    var sec = SECTIONS[key];
+    var rows = list.querySelectorAll(".person");
+    Array.prototype.forEach.call(rows, function (r, i) {
+      var t = r.querySelector(".p-tag");
+      if (t) t.textContent = sec.tag + " " + (i + 1);
+    });
+  }
+
+  /* ---------- totals ---------- */
+  function updateTotals() {
+    var compulsory = compulsoryPW ? COMPULSORY_PW : COMPULSORY_BASE;
+    document.getElementById("sub-member").textContent = money(compulsory);
+
+    var total = compulsory;
+
+    Object.keys(SECTIONS).forEach(function (key) {
+      var sub = 0;
+
+      state[key].forEach(function (it) {
+        var c = costOf(key, it);
+        sub += c;
+        var row = document.querySelector('.person[data-id="' + it.id + '"]');
+        if (row) {
+          var b = row.querySelector(".p-cost b");
+          if (b) b.textContent = money(c);
+        }
+      });
+
+      document.getElementById("sub-" + key).textContent = money(sub);
+
+      var st = document.getElementById("subtext-" + key);
+      if (st) {
+        st.textContent = SUB_BASE[key] + " \u00b7 " + state[key].length + "/" + LIMITS[key];
+      }
+
+      var emptyEl = document.getElementById("empty-" + key);
+      if (emptyEl) emptyEl.style.display = state[key].length ? "none" : "block";
+
+      var addBtn = document.querySelector('[data-add="' + key + '"]');
+      if (addBtn) {
+        var full = state[key].length >= LIMITS[key];
+        addBtn.disabled = full;
+        addBtn.textContent = full
+          ? "Limit reached (" + LIMITS[key] + "/" + LIMITS[key] + ")"
+          : ADD_LABELS[key];
+      }
+
+      total += sub;
+    });
+
+    var el = document.getElementById("grandTotal");
+    el.textContent = money(total);
+
+    if (Math.abs(total - lastTotal) > 0.001) {
+      el.classList.add("pop");
+      setTimeout(function () { el.classList.remove("pop"); }, 160);
+      lastTotal = total;
+    }
+  }
+
+  /* ---------- add / remove ---------- */
+  function addPerson(key) {
+    if (state[key].length >= LIMITS[key]) return;
+
+    var item = { id: ++uid, name: "", photo: "", cover: 0, pw: false };
+    state[key].push(item);
+
+    var list = document.getElementById("list-" + key);
+    var el = buildPersonEl(key, item, state[key].length);
+    list.appendChild(el);
+
+    updateTotals();
+
+    var ni = el.querySelector(".nameinput");
+    if (ni) {
+      try { ni.focus({ preventScroll: true }); } catch (err) { ni.focus(); }
+    }
+  }
+
+  function removePerson(row) {
+    var key = row.getAttribute("data-key");
+    var id = Number(row.getAttribute("data-id"));
+    state[key] = state[key].filter(function (i) { return i.id !== id; });
+    row.remove();
+    renumber(key);
+    updateTotals();
+  }
+
+  /* ---------- events ---------- */
+  var scroll = document.getElementById("scroll");
+
+  scroll.addEventListener("click", function (e) {
+    var head = e.target.closest(".acc-head");
+    if (head) {
+      head.parentElement.classList.toggle("open");
+      return;
+    }
+
+    var add = e.target.closest(".addbtn");
+    if (add) {
+      if (add.disabled) return;
+      addPerson(add.getAttribute("data-add"));
+      return;
+    }
+
+    var x = e.target.closest(".x");
+    if (x) {
+      var row = x.closest(".person");
+      if (row) removePerson(row);
+    }
+  });
+
+  /* text input — name (no premium impact) */
+  scroll.addEventListener("input", function (e) {
+    if (!e.target.classList.contains("nameinput")) return;
+
+    var row = e.target.closest(".person");
+    if (!row) return;
+
+    if (row.classList.contains("member-card")) {
+      member.name = e.target.value;
+      return;
+    }
+
+    var item = findItem(row);
+    if (item) item.name = e.target.value;
+  });
+
+  /* selects, checkboxes & photo uploads */
+  scroll.addEventListener("change", function (e) {
+    var t = e.target;
+
+    /* compulsory PW toggle */
+    if (t.id === "compulsoryPW") {
+      compulsoryPW = t.checked;
+      updateTotals();
+      return;
+    }
+
+    var row = t.closest(".person");
+    if (!row) return;
+
+    /* member photo upload */
+    if (row.classList.contains("member-card")) {
+      if (t.type === "file") {
+        var mf = t.files && t.files[0];
+        if (!mf) return;
+        var mr = new FileReader();
+        mr.onload = function (ev) {
+          member.photo = ev.target.result;
+          applyPhoto(row, member.photo);
+        };
+        mr.readAsDataURL(mf);
+      }
+      return;
+    }
+
+    var item = findItem(row);
+    if (!item) return;
+
+    if (t.hasAttribute("data-cover")) {
+      item.cover = Number(t.value);
+      updateTotals();
+      return;
+    }
+
+    if (t.hasAttribute("data-pw")) {
+      item.pw = t.checked;
+      updateTotals();
+      return;
+    }
+
+    if (t.type === "file") {
+      var file = t.files && t.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        item.photo = ev.target.result;
+        applyPhoto(row, item.photo);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  /* ---------- boot ---------- */
+  document.getElementById("member-card").appendChild(buildMemberCard());
+  updateTotals();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BLIC — Nomination of Beneficiaries</title>
+<style>
+  :root{
+    --ink:#1A202C; --muted:#718096; --line:#E2E8F0;
+    --brand:#D32F2F; --brand2:#B71C1C; --danger:#B71C1C;
+    --gold:#C9A227; --soft:#F4F5F7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%}
+  body{
+    margin:0;height:100dvh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:#E9ECEF;display:flex;align-items:center;justify-content:center;color:var(--ink);
+  }
+  .phone{width:100%;max-width:400px;height:100dvh;max-height:900px;background:#F4F5F7;display:flex;flex-direction:column;overflow:hidden;position:relative}
+  @media (min-width:430px){.phone{border-radius:30px;box-shadow:0 34px 70px rgba(0,0,0,.55);height:860px}}
+
+  /* header */
+  .topbar{flex:0 0 auto;background:linear-gradient(135deg,#D32F2F 0%,#B71C1C 100%);color:#fff;padding:14px 18px 12px}
+  .brand{font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;opacity:.78;font-weight:700}
+  .topbar h1{margin:3px 0 0;font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+
+  /* sticky status bar */
+  .statusbar{
+    flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 18px 11px;box-shadow:0 3px 12px rgba(0,0,0,.08);
+    position:relative;z-index:6;
+  }
+  .sb-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+  .sb-lbl{font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+  .sb-pct{font-size:13px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+  .pb-track{height:6px;border-radius:6px;background:#EBF0F3;overflow:hidden}
+  .pb-fill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,#D32F2F,#B71C1C);transition:width .3s ease}
+  .sb-alloc{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);
+  }
+  .sb-alloc .sa-l{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .sb-alloc .sa-r{
+    font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;
+    color:var(--brand);transition:color .2s ease;
+  }
+  .sb-alloc .sa-r.over{color:var(--danger)}
+  .sb-alloc .sa-r.under{color:var(--gold)}
+
+  /* scroll */
+  .scroll{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:10px 10px 26px}
+
+  /* accordion */
+  .acc{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:9px;overflow:hidden;transition:box-shadow .2s ease,border-color .2s ease}
+  .acc.open{border-color:#FFCDD2;box-shadow:0 8px 20px rgba(211,47,47,.10)}
+  .acc-head{width:100%;border:0;background:transparent;font:inherit;text-align:left;cursor:pointer;padding:12px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .18s ease}
+  .acc.open .acc-head{background:#FFEBEE}
+  .acc-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .acc-title{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+  .acc-sub{font-size:10px;font-weight:500;color:var(--muted);line-height:1.25}
+  .acc-total{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);background:#FFEBEE;border:1px solid #EF9A9A;border-radius:20px;padding:3px 8px;white-space:nowrap}
+  .acc-total.muted{color:var(--muted);background:#F7F9FB;border-color:var(--line)}
+  .acc-total.warn{color:var(--gold);background:#F5F6F8;border-color:#D9E1E8}
+  .acc-body{display:none;padding:12px 13px 14px;border-top:1px solid var(--line)}
+  .acc.open .acc-body{display:block}
+
+  /* subhead */
+  .subhead{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid #EDEFF2}
+  .subhead:first-child{margin-top:0}
+
+  /* fields */
+  .field{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .field > label{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-left:2px}
+  .field input,.field select,.field textarea{
+    width:100%;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);
+    background:#F7F9FB;border:1px solid var(--line);border-radius:9px;padding:9px 10px;
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .field textarea{resize:none;min-height:52px;line-height:1.45}
+  .field input::placeholder,.field textarea::placeholder{color:#a8b4be;font-weight:500}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid #EF9A9A;outline-offset:-1px;background:#fff}
+  .field input[type=date]{font-weight:700}
+  .field input[type=number]{font-variant-numeric:tabular-nums}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .grid-2 .field{margin:0}
+  .mb{margin-bottom:8px}
+  .mb:last-child{margin-bottom:0}
+
+  /* sum row */
+  .sum-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .sum-row:last-child{border-bottom:0;padding-bottom:0}
+  .sum-row:first-child{padding-top:0}
+  .sum-row .sr-l{flex:1 1 auto;min-width:0;font-size:11px;font-weight:700;color:var(--ink);line-height:1.3}
+  .sum-row .sr-input{
+    flex:0 0 132px;display:flex;align-items:center;
+    background:#F7F9FB;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  }
+  .sum-row .sr-input span{
+    font-size:11px;font-weight:800;color:var(--muted);padding:0 8px;
+    background:#EDF1F4;align-self:stretch;display:flex;align-items:center;
+  }
+  .sum-row .sr-input input{
+    flex:1 1 auto;min-width:0;border:0;background:transparent;
+    font-family:inherit;font-size:12.5px;font-weight:800;color:var(--ink);
+    padding:9px 8px;font-variant-numeric:tabular-nums;
+  }
+  .sum-row .sr-input input:focus{outline:0;background:#fff}
+
+  /* beneficiary card */
+  .benef{
+    background:#F8FAFB;border:1px solid var(--line);border-radius:12px;
+    padding:12px;margin-bottom:10px;position:relative;
+  }
+  .benef:last-of-type{margin-bottom:0}
+  .benef-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .benef-tag{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .x{
+    width:26px;height:26px;border-radius:50%;border:1px solid #f2d6ce;background:#fff5f1;
+    color:var(--danger);font-size:15px;line-height:1;font-weight:700;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+    transition:background .15s ease,transform .1s ease;
+  }
+  .x:active{background:#ffe4da;transform:scale(.92)}
+
+  .gender-opts{display:flex;gap:6px}
+  .g-opt{
+    flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:5px;
+    padding:9px 6px;border-radius:9px;border:1px solid var(--line);background:#F7F9FB;
+    font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--muted);
+    cursor:pointer;user-select:none;transition:all .15s ease;
+  }
+  .g-opt input{width:13px;height:13px;margin:0;accent-color:var(--brand);cursor:pointer}
+  .g-opt:has(input:checked){background:#FFEBEE;border-color:#EF9A9A;color:var(--brand)}
+
+  .alloc-field{
+    display:flex;align-items:center;
+    background:#F7F9FB;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  }
+  .alloc-field input{
+    flex:1 1 auto;min-width:0;border:0;background:transparent;
+    font-family:inherit;font-size:13px;font-weight:800;color:var(--ink);
+    padding:9px 10px;font-variant-numeric:tabular-nums;
+  }
+  .alloc-field input:focus{outline:0;background:#fff}
+  .alloc-field span{
+    font-size:12px;font-weight:800;color:var(--muted);padding:0 10px;
+    background:#EDF1F4;align-self:stretch;display:flex;align-items:center;
+  }
+
+  /* add button */
+  .addbtn{
+    width:100%;margin-top:11px;padding:11px;border-radius:11px;
+    border:1px dashed #EF9A9A;background:#FFEBEE;color:var(--brand);
+    font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.03em;
+    cursor:pointer;transition:background .15s ease,transform .1s ease,opacity .15s ease;
+  }
+  .addbtn:active{background:#FFCDD2;transform:scale(.985)}
+  .addbtn:disabled{opacity:.5;cursor:not-allowed;background:#F4F5F7;border-color:#D9E1E8;color:#A0AEB9}
+  .addbtn:disabled:active{transform:none;background:#F4F5F7}
+
+  .empty{margin:14px 0 2px;text-align:center;font-size:11px;color:#A0AEB9;font-weight:600}
+
+  /* toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;cursor:pointer;user-select:none;border-bottom:1px dashed var(--line)}
+  .toggle-row:last-child{border-bottom:0}
+  .toggle-row .tr-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .toggle-row .tr-text strong{font-size:12px;font-weight:800;color:var(--ink);line-height:1.35}
+  .toggle-row .tr-text span{font-size:10px;color:var(--muted);line-height:1.3}
+  .switch{position:relative;flex:0 0 auto;width:42px;height:24px;cursor:pointer}
+  .switch input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;z-index:2}
+  .switch-track{position:absolute;inset:0;border-radius:24px;background:#E2E8F0;transition:background .2s ease}
+  .switch-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.22);transition:transform .2s ease}
+  .switch input:checked + .switch-track{background:var(--brand)}
+  .switch input:checked + .switch-track + .switch-knob{transform:translateX(18px)}
+
+  /* signature */
+  .sig-wrap{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;position:relative}
+  .sig-wrap .sig-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;color:#B8C4CE;pointer-events:none;transition:opacity .2s ease}
+  .sig-wrap.signed .sig-hint{opacity:0}
+  canvas.sigpad{display:block;width:100%;height:120px;touch-action:none;cursor:crosshair}
+  .sig-actions{display:flex;justify-content:flex-end;margin-top:6px}
+  .sig-clear{font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--danger);background:#fff5f1;border:1px solid #f2d6ce;border-radius:7px;padding:6px 11px;cursor:pointer;transition:background .15s ease}
+  .sig-clear:active{background:#ffe4da}
+
+  /* official */
+  .official{display:flex;align-items:center;gap:8px;padding:9px 11px;background:#F5F6F8;border:1px dashed #D9E1E8;border-radius:10px;margin-bottom:12px}
+  .official svg{width:15px;height:15px;fill:none;stroke:var(--gold);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+  .official span{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);line-height:1.4}
+
+  /* legal text */
+  .legal{font-size:10.5px;line-height:1.65;color:var(--muted);margin:0 0 10px}
+  .legal:last-child{margin-bottom:0}
+  .legal strong{color:var(--ink);font-weight:800}
+
+  .notes{margin:0;padding-left:16px;font-size:10.5px;line-height:1.65;color:var(--muted)}
+  .notes li{margin-bottom:6px}
+  .notes li:last-child{margin-bottom:0}
+  .notes li::marker{color:#EF9A9A}
+  .notes strong{color:var(--ink);font-weight:800}
+
+  .notes.nostyle{padding-left:0;list-style:none}
+  .notes.nostyle li{margin-bottom:5px}
+
+  /* pin pill */
+  .pin{
+    display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--brand);background:#FFEBEE;
+    border:1px solid #EF9A9A;border-radius:20px;padding:3px 8px;margin-bottom:8px;
+  }
+
+  /* contact card */
+  .contact-card{
+    background:#F8FAFB;border:1px solid var(--line);border-radius:11px;
+    padding:11px;margin-bottom:9px;
+  }
+  .contact-card:last-child{margin-bottom:0}
+  .contact-card h4{margin:0 0 6px;font-size:11.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+  .contact-card p{margin:0 0 3px;font-size:10.5px;line-height:1.5;color:var(--muted)}
+  .contact-card p:last-child{margin-bottom:0}
+  .contact-card p strong{color:var(--ink);font-weight:700}
+
+  /* disclaimer */
+  .disclaimer{margin:14px 4px 0;font-size:9px;line-height:1.55;text-align:center;color:#A0AEB9}
+  .disclaimer strong{color:#8492A0;font-weight:700;letter-spacing:.04em}
+  /* ===== BOPEU app styling bridge ===== */
+  .topbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:3px solid var(--brand);
+    color:var(--ink);
+    padding:12px 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .tb-home{display:flex;align-items:center}
+  .tb-logo{width:46px;height:46px;object-fit:contain}
+  .tb-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+  .tb-text .brand{margin:0;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800;opacity:1;line-height:1.2}
+  .tb-text h1{margin:0;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.25}
+
+  .b-nav{flex:0 0 auto;display:flex;align-items:stretch;background:var(--brand);height:60px;z-index:20}
+  .b-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.03em}
+  .b-nav a img{width:19px;height:19px;object-fit:contain;opacity:.62;filter:brightness(0) invert(1)}
+  .b-nav a span{opacity:.85}
+
+  .form-logos{margin:18px 6px 2px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+  .form-logos img{height:44px;width:auto;object-fit:contain;max-width:46%}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="topbar">
+    <a class="tb-home" href="index.html" title="Back to BOPEU app"><img class="tb-logo" src="../Assets/logo/bopeu_logo.webp" alt="BOPEU"></a>
+    <span class="tb-text">
+      <span class="brand">BLIC &middot; Babereki Life Insurance Company (Pty) Ltd</span>
+      <h1>Group Life Assurance<br>Nomination of Beneficiaries</h1>
+    </span>
+  </div>
+
+  <div class="statusbar">
+    <div class="sb-top">
+      <span class="sb-lbl">Form completion</span>
+      <span class="sb-pct" id="pbPct">0%</span>
+    </div>
+    <div class="pb-track"><div class="pb-fill" id="pbFill"></div></div>
+    <div class="sb-alloc">
+      <span class="sa-l">Beneficiary allocation</span>
+      <span class="sa-r" id="allocTotal">0%</span>
+    </div>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ============ MAIN MEMBER DETAILS ============ -->
+    <section class="acc open">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Main Member Details</span>
+          <span class="acc-sub">Title, name, DOB, ID, contact &amp; address</span>
+        </span>
+        <span class="acc-total muted" id="badge-member">0/10</span>
+      </button>
+      <div class="acc-body">
+        <div class="grid-2">
+          <div class="field">
+            <label>1. Title</label>
+            <select data-track>
+              <option value="">—</option>
+              <option>Mr</option><option>Mrs</option><option>Ms</option>
+              <option>Miss</option><option>Dr</option><option>Prof</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>2. Forename(s)</label>
+            <input type="text" placeholder="Forename(s)" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field mb">
+          <label>3. Surname</label>
+          <input type="text" placeholder="Surname" autocomplete="off" data-track>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>4. Date of Birth</label>
+            <input type="date" data-track>
+          </div>
+          <div class="field">
+            <label>5. Gender</label>
+            <div class="gender-opts" style="margin-top:1px">
+              <label class="g-opt"><input type="radio" name="memGender" value="M" data-track><span>M</span></label>
+              <label class="g-opt"><input type="radio" name="memGender" value="F" data-track><span>F</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>6. Omang / Passport No.</label>
+            <input type="text" inputmode="numeric" placeholder="ID / Passport" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>7. Cell Number</label>
+            <input type="tel" inputmode="tel" placeholder="+267 ..." autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field mb">
+          <label>8. Postal Address</label>
+          <textarea placeholder="P.O. Box / Private Bag ..." autocomplete="off" data-track></textarea>
+        </div>
+        <div class="field mb">
+          <label>9. Physical Address</label>
+          <textarea placeholder="Plot / Ward, Town / Village, Country" autocomplete="off" data-track></textarea>
+        </div>
+        <div class="field">
+          <label>10. Email Address</label>
+          <input type="email" inputmode="email" placeholder="name@example.com" autocomplete="off" data-track>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POLICY DETAILS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Policy Details</span>
+          <span class="acc-sub">Premium &amp; sum-assured amounts</span>
+        </span>
+        <span class="acc-total muted" id="badge-policy">0/3</span>
+      </button>
+      <div class="acc-body">
+        <div class="sum-row">
+          <span class="sr-l">1. Monthly Premium</span>
+          <span class="sr-input">
+            <span>P</span>
+            <input type="number" min="0" step="0.01" placeholder="0.00" data-salary data-track>
+          </span>
+        </div>
+        <div class="sum-row">
+          <span class="sr-l">2. Death Sum-Assured</span>
+          <span class="sr-input">
+            <span>P</span>
+            <input type="number" min="0" step="0.01" placeholder="200,000.00" data-track>
+          </span>
+        </div>
+        <div class="sum-row">
+          <span class="sr-l">3. Total &amp; Permanent Disability Sum-Assured</span>
+          <span class="sr-input">
+            <span>P</span>
+            <input type="number" min="0" step="0.01" placeholder="70,000.00" data-track>
+          </span>
+        </div>
+        <p class="legal" style="margin-top:12px">
+          The maximum age of entry is <strong>65 years</strong> for the member.
+          A <strong>6-month waiting period</strong> applies from the starting or reinstatement
+          date of the policy, unless death is due to an accident.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ NOMINATED BENEFICIARIES ============ -->
+    <section class="acc open">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Nominated Beneficiaries</span>
+          <span class="acc-sub" id="sub-benef">Add each beneficiary &middot; 0 added</span>
+        </span>
+        <span class="acc-total muted" id="badge-benef">0/9</span>
+      </button>
+      <div class="acc-body">
+        <span class="pin">Allocation must total 100%</span>
+        <div id="list-benef"></div>
+        <p class="empty" id="empty-benef">No beneficiaries added yet</p>
+        <button class="addbtn" type="button" id="addBenef">+ Add Beneficiary</button>
+      </div>
+    </section>
+
+    <!-- ============ GUARDIAN FOR MINOR ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Guardian for Minor</span>
+          <span class="acc-sub">Only if a beneficiary is under 18</span>
+        </span>
+        <span class="acc-total muted" id="badge-guardian">Off</span>
+      </button>
+      <div class="acc-body">
+
+        <label class="toggle-row">
+          <span class="tr-text">
+            <strong>Add a guardian for minor</strong>
+            <span>Complete if any nominated beneficiary is a minor</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="guardianToggle">
+            <span class="switch-track"></span>
+            <span class="switch-knob"></span>
+          </span>
+        </label>
+
+        <div id="guardianFields" style="display:none;padding-top:12px">
+          <div class="grid-2">
+            <div class="field">
+              <label>Forename</label>
+              <input type="text" placeholder="Forename" autocomplete="off" data-track>
+            </div>
+            <div class="field">
+              <label>Surname</label>
+              <input type="text" placeholder="Surname" autocomplete="off" data-track>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Date of Birth</label>
+              <input type="date" data-track>
+            </div>
+            <div class="field">
+              <label>Gender</label>
+              <div class="gender-opts" style="margin-top:1px">
+                <label class="g-opt"><input type="radio" name="gGender" value="M" data-track><span>M</span></label>
+                <label class="g-opt"><input type="radio" name="gGender" value="F" data-track><span>F</span></label>
+              </div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Omang / Passport No.</label>
+              <input type="text" inputmode="numeric" placeholder="ID / Passport" autocomplete="off" data-track>
+            </div>
+            <div class="field">
+              <label>Cell Number</label>
+              <input type="tel" inputmode="tel" placeholder="+267 ..." autocomplete="off" data-track>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ CONSENT & SIGNATURE ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Consent &amp; Signature</span>
+          <span class="acc-sub">Main member declaration</span>
+        </span>
+        <span class="acc-total muted" id="badge-consent">0/2</span>
+      </button>
+      <div class="acc-body">
+
+        <p class="legal">
+          By signing below, you consent to the collection, use, and sharing of personal and sensitive
+          information as described above. We will retain your data for <strong>at least 20 years</strong>
+          in accordance with legal requirements or longer if required by law enforcement. These third
+          parties are obligated to protect your data and use it only for the purposes for which it
+          was shared.
+        </p>
+
+        <div class="field mb">
+          <label>Signature of Main Member</label>
+          <div class="sig-wrap" id="sigWrap">
+            <div class="sig-hint">Sign here with your finger</div>
+            <canvas class="sigpad" id="sigPad"></canvas>
+          </div>
+          <div class="sig-actions">
+            <button class="sig-clear" type="button" id="sigClear">Clear signature</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Date</label>
+          <input type="date" data-track>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ FOR OFFICIAL USE ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">For Official Use</span>
+          <span class="acc-sub">Received by &amp; processed by</span>
+        </span>
+        <span class="acc-total muted" id="badge-official">0/2</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="official">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="16" height="16" rx="2"/>
+            <path d="M8 10h8M8 14h5"/>
+          </svg>
+          <span>To be completed by BLIC staff only</span>
+        </div>
+
+        <div class="field mb">
+          <label>Received By</label>
+          <input type="text" placeholder="Officer name" autocomplete="off" data-track>
+        </div>
+
+        <div class="field">
+          <label>Processed By</label>
+          <input type="text" placeholder="Officer name" autocomplete="off" data-track>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ GENERAL CONDITIONS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">General Conditions</span>
+          <span class="acc-sub">Terms, disclosure &amp; policy modification</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          The terms and conditions of cover in this policy apply for the duration of the policy.
+          These cannot be modified except in writing by an authorized official of
+          <strong>Babereki Life Insurance Company (Pty) Ltd</strong>.
+        </p>
+        <p class="legal">
+          The company relied on the information provided by the Policyholder to issue this policy.
+          If all material information has not been disclosed, the company may void the policy from
+          the policy date and retain some or all the premiums received.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ PROTECTION OF PERSONAL INFORMATION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Protection of Personal Information</span>
+          <span class="acc-sub">Consent to retain &amp; share data</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          By accepting this contract, you give <strong>Babereki Life Insurance Company (Pty) Ltd.</strong>
+          consent to retain your personal information and to use and share this information with
+          legitimate sources only for the purpose of this insurance contract.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ AGE AT ENTRY ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Age at Entry</span>
+          <span class="acc-sub">Maximum age for the member</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          The maximum age of entry is <strong>65 years</strong> for the member.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ CESSATION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Cessation</span>
+          <span class="acc-sub">When cover comes to an end</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          A Life Assured&rsquo;s Assurance cover shall cease on the earliest of the following:
+        </p>
+        <ol class="notes">
+          <li>The Life Assured reaching <strong>60 years</strong> for Total &amp; Permanent Disability Cover. There is no cease age for Death Cover.</li>
+          <li>Termination of this Policy by the Insurer or the Policyholder.</li>
+          <li>Cessation of payment of premiums.</li>
+          <li>The Life Assured ceasing to be an Eligible Member.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ WAITING PERIOD ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Waiting Period</span>
+          <span class="acc-sub">6 months from starting or reinstatement</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          A waiting period of <strong>six (6) months</strong> will apply to the member. This is after
+          the starting or reinstatement date of the policy, unless death is due to an accident.
+          The company is not obligated to settle any accidental death claim before it has received
+          the first premium.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ CLAIMS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Claims</span>
+          <span class="acc-sub">Notification &amp; required documents</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          The claim must be notified within <strong>six (6) months</strong> and claim documents
+          submitted within <strong>twelve (12) months</strong> of date of death.
+        </p>
+
+        <div class="subhead">Death Benefit — Documents Required</div>
+        <ul class="notes">
+          <li>Original certified copy of Death certificate.</li>
+          <li>Completed death claim form obtainable from Bona Life.</li>
+          <li>KYC documents (proof of source of income, proof of residence, certified copy of ID/passport).</li>
+        </ul>
+
+        <div class="subhead">Total and Permanent Disability Benefit — Documents Required</div>
+        <ul class="notes">
+          <li>Certificate of employer.</li>
+          <li>Valid medical report.</li>
+          <li>KYC documents (proof of source of income, proof of residence, certified copy of ID/passport).</li>
+        </ul>
+
+        <p class="legal" style="margin-top:12px">
+          Bona Life Insurance reserves the right to call for any additional documentation to ensure
+          that the claim is valid. If any claim under this policy is fraudulent in any manner all
+          benefits will be forfeited.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ DEATH & DISABILITY DEFINITION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Death Benefit, Total &amp; Permanent Disability</span>
+          <span class="acc-sub">Definition of disability</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          <strong>Total and Permanent Disability</strong> shall mean total and permanent inability, as a
+          result of injury or sickness of a Life Assured to perform his/her own occupation or suited
+          occupation by virtue of his/her own education, training, knowledge and experience, as
+          determined by <strong>Babereki Life Insurance Company (Pty) Ltd.</strong> in its sole discretion.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ SPECIAL CONDITIONS & EXCLUSIONS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Special Conditions &amp; Exclusions</span>
+          <span class="acc-sub">Reduction of benefit &amp; non-payment events</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          The Death Benefit paid in respect of a Life Assured under this Policy shall be reduced by
+          the amount of any Disability Benefit previously paid in respect of the Life Assured under
+          this Policy.
+        </p>
+        <p class="legal">
+          The life insurance benefit will <strong>not be paid</strong> in the event of death being a
+          direct result of:
+        </p>
+        <ol class="notes">
+          <li>The Assured committing suicide in <strong>12 months</strong> of his/her effective date in the event of death.</li>
+          <li>Invasion, rebellion, war or war-like operation (whether war be declared or not), or from any involvement in any riot or civil commotion (whether participation was active or passive).</li>
+          <li>Wilful self-inflicted injury, use of narcotics or abuse of alcohol.</li>
+          <li>Extreme sports including but not limited to bungee jumping, diving, mountain biking, scuba diving, parasailing, paragliding, barefoot skiing, free flying, zip-lining, motorcycling and BMX racing, ski jumping, kayaking, surfing and shark cage diving.</li>
+          <li>The effects of radioactivity or nuclear explosion.</li>
+          <li>Involvement in criminal activity.</li>
+          <li>Non-compliance to medical treatment.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ PRE-EXISTING CONDITION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Pre-existing Condition</span>
+          <span class="acc-sub">First 12 months after entry</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          No Disability Benefit shall be payable under this Policy during the first
+          <strong>twelve (12) months</strong> following the Life Assured&rsquo;s Entry Date if, in the
+          opinion of the Insurer, the claim arises from any disease or condition which the Life Assured
+          was diagnosed with, treated for, or displayed symptoms of within the <strong>six months</strong>
+          prior to the Life Assured&rsquo;s Entry Date.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ REVISION OF TERMS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Revision of Terms &amp; Conditions</span>
+          <span class="acc-sub">Annual renewal &amp; amendments</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          The insurer reserves the right to amend, revoke, vary or alter any terms and conditions of
+          this policy. However, the insured will be notified. This policy is renewable on an
+          <strong>annual basis</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ DISCLAIMER ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Disclaimer</span>
+          <span class="acc-sub">Master policy takes precedence</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal">
+          The above is the summary of terms and conditions, should there be a dispute in
+          interpretation, the <strong>master policy takes precedence</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ QUERIES / COMPLAINTS ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Queries / Complaints</span>
+          <span class="acc-sub">Contact details for policy queries</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="legal" style="margin-bottom:12px">
+          Please contact the following for any queries on the policy:
+        </p>
+
+        <div class="contact-card">
+          <h4>Babereki Life Insurance Company</h4>
+          <p>Plot 145, Unit 6 Gaborone International Finance Park</p>
+          <p>PO BOX 7 AAD Poso House</p>
+          <p><strong>Tel:</strong> +267 321 6290</p>
+        </div>
+
+        <div class="contact-card">
+          <h4>NBFIRA — Insurance Department</h4>
+          <p>Private Bag 00314, Gaborone</p>
+          <p><strong>Tel:</strong> 3686100</p>
+          <p><strong>Fax:</strong> 3102376</p>
+        </div>
+      </div>
+    </section>
+
+    <p class="disclaimer">
+      <strong>BLIC REG NO BW00002964117</strong><br>
+      Babereki Life Insurance Company (Pty) Ltd<br>
+      GROUP LIFE ASSURANCE — NOMINATION OF BENEFICIARIES
+    </p>
+
+    <div class="form-logos">
+      <img src="../Assets/logo/forms/BLIC_logo.webp" alt="Babereki Life Insurance Company (BLIC)">
+    </div>
+
+  </div>
+
+  <div class="b-nav">
+    <a href="index.html?tab=0"><img src="../Assets/icons/timeline_icon.webp" alt="Timeline"><span>Timeline</span></a>
+    <a href="index.html?tab=1"><img src="../Assets/icons/notices_icon.webp" alt="Updates"><span>Updates</span></a>
+    <a href="index.html?tab=2"><img src="../Assets/icons/benefits_icon.webp" alt="Benefits"><span>Benefits</span></a>
+    <a href="index.html?tab=3"><img src="../Assets/icons/claims_icon.webp" alt="Card"><span>Card</span></a>
+    <a href="index.html?tab=4"><img src="../Assets/icons/menu_icon.webp" alt="Help"><span>Help</span></a>
+  </div>
+
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ==================== BENEFICIARIES ==================== */
+  var beneficiaries = [];
+  var uid = 0;
+
+  var listBenef  = document.getElementById("list-benef");
+  var emptyBenef = document.getElementById("empty-benef");
+  var addBenefBtn = document.getElementById("addBenef");
+
+  function buildBenefEl(item, index) {
+    var el = document.createElement("div");
+    el.className = "benef";
+    el.setAttribute("data-id", item.id);
+
+    el.innerHTML =
+      '<div class="benef-head">' +
+        '<span class="benef-tag">Beneficiary ' + index + '</span>' +
+        '<button class="x" type="button" aria-label="Remove beneficiary">&times;</button>' +
+      '</div>' +
+
+      '<div class="grid-2">' +
+        '<div class="field">' +
+          '<label>Name</label>' +
+          '<input type="text" placeholder="Given name" data-f="name" value="' + esc(item.name) + '" autocomplete="off">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Surname</label>' +
+          '<input type="text" placeholder="Surname" data-f="surname" value="' + esc(item.surname) + '" autocomplete="off">' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="grid-2">' +
+        '<div class="field">' +
+          '<label>Omang / ID</label>' +
+          '<input type="text" inputmode="numeric" placeholder="ID number" data-f="omang" value="' + esc(item.omang) + '">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Gender</label>' +
+          '<div class="gender-opts" style="margin-top:1px">' +
+            '<label class="g-opt"><input type="radio" name="b' + item.id + 'g" value="M" data-gender' + (item.gender === "M" ? " checked" : "") + '><span>M</span></label>' +
+            '<label class="g-opt"><input type="radio" name="b' + item.id + 'g" value="F" data-gender' + (item.gender === "F" ? " checked" : "") + '><span>F</span></label>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="grid-2">' +
+        '<div class="field">' +
+          '<label>Date of Birth</label>' +
+          '<input type="date" data-f="dob" value="' + esc(item.dob) + '">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Relationship</label>' +
+          '<input type="text" placeholder="e.g. Spouse" data-f="relationship" value="' + esc(item.relationship) + '" autocomplete="off">' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="grid-2">' +
+        '<div class="field">' +
+          '<label>Benefit Allocation %</label>' +
+          '<div class="alloc-field">' +
+            '<input type="number" min="0" max="100" step="1" placeholder="0" data-alloc value="' + (item.alloc ? item.alloc : "") + '">' +
+            '<span>%</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Phone Number</label>' +
+          '<input type="tel" inputmode="tel" placeholder="+267 ..." data-f="phone" value="' + esc(item.phone) + '">' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>Physical Address</label>' +
+        '<input type="text" placeholder="Plot / Ward, Town / Village" data-f="address" value="' + esc(item.address) + '" autocomplete="off">' +
+      '</div>';
+
+    return el;
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renumberBenef() {
+    var rows = listBenef.querySelectorAll(".benef");
+    Array.prototype.forEach.call(rows, function (r, i) {
+      var t = r.querySelector(".benef-tag");
+      if (t) t.textContent = "Beneficiary " + (i + 1);
+    });
+  }
+
+  function updateAllocDisplay() {
+    var total = 0;
+    beneficiaries.forEach(function (b) {
+      total += Number(b.alloc) || 0;
+    });
+    var el = document.getElementById("allocTotal");
+    el.textContent = total + "%";
+    el.classList.remove("over", "under");
+    if (total > 100) el.classList.add("over");
+    else if (total > 0 && total < 100) el.classList.add("under");
+  }
+
+  function updateBenefBadge() {
+    var filled = 0, total = 0;
+    beneficiaries.forEach(function (b) {
+      /* 7 tracked per beneficiary */
+      total += 7;
+      if (b.name) filled++;
+      if (b.surname) filled++;
+      if (b.omang) filled++;
+      if (b.gender) filled++;
+      if (b.dob) filled++;
+      if (b.relationship) filled++;
+      if (b.alloc) filled++;
+    });
+    var badge = document.getElementById("badge-benef");
+    if (badge) badge.textContent = filled + "/" + (total || 7);
+
+    var sub = document.getElementById("sub-benef");
+    if (sub) {
+      sub.textContent = beneficiaries.length
+        ? "Add each beneficiary \u00b7 " + beneficiaries.length + " added"
+        : "Add each beneficiary \u00b7 0 added";
+    }
+  }
+
+  function addBeneficiary() {
+    var item = {
+      id: ++uid, name: "", surname: "", omang: "", gender: "",
+      dob: "", relationship: "", alloc: "", phone: "", address: ""
+    };
+    beneficiaries.push(item);
+
+    var el = buildBenefEl(item, beneficiaries.length);
+    listBenef.appendChild(el);
+    emptyBenef.style.display = "none";
+
+    updateAllocDisplay();
+    updateBenefBadge();
+    updateProgress();
+
+    var ni = el.querySelector('[data-f="name"]');
+    if (ni) { try { ni.focus({ preventScroll: true }); } catch (e) { ni.focus(); } }
+  }
+
+  function removeBeneficiary(row) {
+    var id = Number(row.getAttribute("data-id"));
+    beneficiaries = beneficiaries.filter(function (b) { return b.id !== id; });
+    row.remove();
+    renumberBenef();
+    if (!beneficiaries.length) emptyBenef.style.display = "block";
+    updateAllocDisplay();
+    updateBenefBadge();
+    updateProgress();
+  }
+
+  addBenefBtn.addEventListener("click", addBeneficiary);
+
+  /* ==================== PROGRESS TRACKING ==================== */
+  var tracked = function () {
+    return document.querySelectorAll("[data-track]");
+  };
+
+  function countSection(sectionEl) {
+    if (!sectionEl) return { filled: 0, total: 0 };
+    var list = sectionEl.querySelectorAll("[data-track]");
+    var radioSeen = {};
+    var filled = 0, total = 0;
+    Array.prototype.forEach.call(list, function (el) {
+      if (el.type === "radio") {
+        if (radioSeen[el.name]) return;
+        radioSeen[el.name] = true;
+        total++;
+        if (document.querySelector('input[name="' + el.name + '"]:checked')) filled++;
+      } else {
+        total++;
+        if (el.type === "checkbox") {
+          if (el.checked) filled++;
+        } else if (el.value && String(el.value).trim() !== "") {
+          filled++;
+        }
+      }
+    });
+    return { filled: filled, total: total };
+  }
+
+  function setBadge(badgeId, stats, suffix) {
+    var el = document.getElementById(badgeId);
+    if (!el) return;
+    if (stats.total === 0) {
+      el.textContent = suffix || "0/0";
+    } else {
+      el.textContent = stats.filled + "/" + stats.total;
+    }
+  }
+
+  function updateProgress() {
+    var list = tracked();
+    var radioSeen = {};
+    var filled = 0, total = 0;
+
+    Array.prototype.forEach.call(list, function (el) {
+      if (el.type === "radio") {
+        if (radioSeen[el.name]) return;
+        radioSeen[el.name] = true;
+        total++;
+        if (document.querySelector('input[name="' + el.name + '"]:checked')) filled++;
+      } else {
+        total++;
+        if (el.type === "checkbox") {
+          if (el.checked) filled++;
+        } else if (el.value && String(el.value).trim() !== "") {
+          filled++;
+        }
+      }
+    });
+
+    /* beneficiaries counted separately (7 fields each) */
+    beneficiaries.forEach(function (b) {
+      total += 7;
+      if (b.name) filled++;
+      if (b.surname) filled++;
+      if (b.omang) filled++;
+      if (b.gender) filled++;
+      if (b.dob) filled++;
+      if (b.relationship) filled++;
+      if (b.alloc) filled++;
+    });
+
+    var pct = total ? Math.round((filled / total) * 100) : 0;
+    document.getElementById("pbPct").textContent = pct + "%";
+    document.getElementById("pbFill").style.width = pct + "%";
+
+    /* per-section badges */
+    var sections = document.querySelectorAll(".acc");
+    var badgeIds = [
+      "badge-member", "badge-policy", null, "badge-guardian",
+      "badge-consent", "badge-official", null, null, null,
+      null, null, null, null, null, null, null
+    ];
+    /* simpler approach: match by ID */
+    setBadge("badge-member",   countSection(document.querySelector("#badge-member").closest(".acc")));
+    setBadge("badge-policy",   countSection(document.querySelector("#badge-policy").closest(".acc")));
+    setBadge("badge-consent",  countSection(document.querySelector("#badge-consent").closest(".acc")));
+    setBadge("badge-official", countSection(document.querySelector("#badge-official").closest(".acc")));
+
+    /* beneficiary badge */
+    updateBenefBadge();
+    updateAllocDisplay();
+
+    /* guardian badge */
+    var gBadge = document.getElementById("badge-guardian");
+    if (gBadge) {
+      if (document.getElementById("guardianToggle").checked) {
+        var gStats = countSection(document.getElementById("guardianFields").closest(".acc"));
+        gBadge.textContent = gStats.filled + "/" + gStats.total;
+        gBadge.classList.remove("muted");
+      } else {
+        gBadge.textContent = "Off";
+        gBadge.classList.add("muted");
+      }
+    }
+  }
+
+  /* ==================== EVENT DELEGATION ==================== */
+  var scroll = document.getElementById("scroll");
+
+  scroll.addEventListener("click", function (e) {
+    /* accordion toggle */
+    var head = e.target.closest(".acc-head");
+    if (head) { head.parentElement.classList.toggle("open"); return; }
+
+    /* remove beneficiary */
+    var x = e.target.closest(".x");
+    if (x) {
+      var row = x.closest(".benef");
+      if (row) { removeBeneficiary(row); }
+    }
+  });
+
+  /* inputs — beneficiary fields */
+  scroll.addEventListener("input", function (e) {
+    var row = e.target.closest(".benef");
+    if (row) {
+      var id = Number(row.getAttribute("data-id"));
+      var item = beneficiaries.filter(function (b) { return b.id === id; })[0];
+      if (item) {
+        if (e.target.hasAttribute("data-alloc")) {
+          item.alloc = e.target.value;
+        } else {
+          var f = e.target.getAttribute("data-f");
+          if (f) item[f] = e.target.value;
+        }
+      }
+      updateAllocDisplay();
+      updateBenefBadge();
+    }
+    updateProgress();
+  });
+
+  scroll.addEventListener("change", function (e) {
+    /* guardian toggle */
+    if (e.target.id === "guardianToggle") {
+      var on = e.target.checked;
+      document.getElementById("guardianFields").style.display = on ? "block" : "none";
+      updateProgress();
+      return;
+    }
+
+    /* beneficiary gender radios */
+    if (e.target.hasAttribute && e.target.hasAttribute("data-gender")) {
+      var row = e.target.closest(".benef");
+      if (row) {
+        var id = Number(row.getAttribute("data-id"));
+        var item = beneficiaries.filter(function (b) { return b.id === id; })[0];
+        if (item) item.gender = e.target.value;
+        updateBenefBadge();
+      }
+    }
+
+    updateProgress();
+  });
+
+  /* ==================== SIGNATURE PAD ==================== */
+  function setupSignaturePad() {
+    var canvas = document.getElementById("sigPad");
+    var wrap   = document.getElementById("sigWrap");
+    var clear  = document.getElementById("sigClear");
+    if (!canvas || !wrap) return;
+
+    var ctx = canvas.getContext("2d");
+    var drawing = false, dirty = false;
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      var prev = dirty ? canvas.toDataURL() : null;
+      canvas.width  = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#1A202C";
+      if (prev) {
+        var img = new Image();
+        img.onload = function () { ctx.drawImage(img, 0, 0, rect.width, rect.height); };
+        img.src = prev;
+      }
+    }
+
+    function point(evt) {
+      var rect = canvas.getBoundingClientRect();
+      var src = evt.touches ? evt.touches[0] : evt;
+      return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+    }
+    function start(evt) {
+      evt.preventDefault();
+      drawing = true; dirty = true;
+      wrap.classList.add("signed");
+      var p = point(evt);
+      ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    }
+    function move(evt) {
+      if (!drawing) return;
+      evt.preventDefault();
+      var p = point(evt);
+      ctx.lineTo(p.x, p.y); ctx.stroke();
+    }
+    function end(evt) { if (!drawing) return; drawing = false; if (evt) evt.preventDefault(); }
+
+    canvas.addEventListener("mousedown", start);
+    canvas.addEventListener("mousemove", move);
+    canvas.addEventListener("mouseup", end);
+    canvas.addEventListener("mouseleave", end);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove", move, { passive: false });
+    canvas.addEventListener("touchend", end, { passive: false });
+    canvas.addEventListener("touchcancel", end, { passive: false });
+
+    if (clear) {
+      clear.addEventListener("click", function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        dirty = false;
+        wrap.classList.remove("signed");
+        updateProgress();
+      });
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+  }
+
+  /* ==================== BOOT ==================== */
+  setupSignaturePad();
+
+  /* add two empty beneficiary rows on start to invite entry */
+  addBeneficiary();
+  addBeneficiary();
+
+  updateProgress();
+})();
+</script>
+</body>
+</html>

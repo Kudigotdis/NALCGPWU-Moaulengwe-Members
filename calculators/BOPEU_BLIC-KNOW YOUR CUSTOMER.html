@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BLIC Know Your Customer</title>
+<style>
+  :root{
+    --ink:#1A202C;
+    --muted:#718096;
+    --line:#E2E8F0;
+    --brand:#D32F2F;
+    --brand2:#B71C1C;
+    --danger:#B71C1C;
+    --gold:#C9A227;
+    --soft:#F4F5F7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%}
+  body{
+    margin:0;
+    height:100dvh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:#E9ECEF;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+  }
+  .phone{
+    width:100%;
+    max-width:400px;
+    height:100dvh;
+    max-height:900px;
+    background:#F4F5F7;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+  @media (min-width:430px){
+    .phone{border-radius:30px;box-shadow:0 34px 70px rgba(0,0,0,.55);height:860px}
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    flex:0 0 auto;
+    background:linear-gradient(135deg,#D32F2F 0%,#B71C1C 100%);
+    color:#fff;
+    padding:14px 18px 12px;
+  }
+  .brand{
+    font-size:9px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    opacity:.78;
+    font-weight:700;
+  }
+  .topbar h1{
+    margin:3px 0 0;
+    font-size:15.5px;
+    font-weight:800;
+    letter-spacing:-.01em;
+  }
+
+  /* ---------- progress bar ---------- */
+  .progressbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:10px 18px 11px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+    position:relative;
+    z-index:6;
+  }
+  .progressbar .pb-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:7px;
+  }
+  .progressbar .pb-lbl{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .progressbar .pb-pct{
+    font-size:13px;
+    font-weight:800;
+    color:var(--brand);
+    font-variant-numeric:tabular-nums;
+  }
+  .pb-track{
+    height:6px;
+    border-radius:6px;
+    background:#EBF0F3;
+    overflow:hidden;
+  }
+  .pb-fill{
+    height:100%;
+    width:0%;
+    border-radius:6px;
+    background:linear-gradient(90deg,#D32F2F 0%,#B71C1C 100%);
+    transition:width .3s ease;
+  }
+
+  /* ---------- scroll area ---------- */
+  .scroll{
+    flex:1 1 auto;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    padding:10px 10px 26px;
+  }
+
+  /* ---------- accordion ---------- */
+  .acc{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:9px;
+    overflow:hidden;
+    transition:box-shadow .2s ease,border-color .2s ease;
+  }
+  .acc.open{
+    border-color:#FFCDD2;
+    box-shadow:0 8px 20px rgba(211,47,47,.10);
+  }
+  .acc-head{
+    width:100%;
+    border:0;
+    background:transparent;
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+    padding:12px 13px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    transition:background .18s ease;
+  }
+  .acc.open .acc-head{background:#FFEBEE}
+  .acc-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .acc-title{
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .acc-sub{
+    font-size:10px;
+    font-weight:500;
+    color:var(--muted);
+    line-height:1.25;
+  }
+  .acc-total{
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--brand);
+    background:#FFEBEE;
+    border:1px solid #EF9A9A;
+    border-radius:20px;
+    padding:3px 8px;
+    white-space:nowrap;
+  }
+  .acc-total.muted{
+    color:var(--muted);
+    background:#F7F9FB;
+    border-color:var(--line);
+  }
+  .acc-body{
+    display:none;
+    padding:12px 13px 14px;
+    border-top:1px solid var(--line);
+  }
+  .acc.open .acc-body{display:block}
+
+  /* ---------- sub headings ---------- */
+  .subhead{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:14px 0 8px;
+    padding-bottom:5px;
+    border-bottom:1px solid #EDEFF2;
+  }
+  .subhead:first-child{margin-top:0}
+
+  /* ---------- fields ---------- */
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    min-width:0;
+  }
+  .field > label{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding-left:2px;
+  }
+  .field input,
+  .field select,
+  .field textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    background:#F7F9FB;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 10px;
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .field textarea{
+    resize:none;
+    min-height:54px;
+    line-height:1.45;
+  }
+  .field input::placeholder,
+  .field textarea::placeholder{color:#a8b4be;font-weight:500}
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus{
+    outline:2px solid #EF9A9A;
+    outline-offset:-1px;
+    background:#fff;
+  }
+  .field input[type=date]{font-weight:700}
+  .field input[type=number]{font-variant-numeric:tabular-nums}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px}
+  .grid-2 .field{margin:0}
+  .grid-3 .field{margin:0}
+  .mb{margin-bottom:8px}
+  .mb:last-child{margin-bottom:0}
+
+  /* ---------- PIP toggle ---------- */
+  .pip-box{
+    margin-top:6px;
+    padding:11px;
+    background:#F8FAFB;
+    border:1px solid var(--line);
+    border-radius:11px;
+  }
+  .pip-q{
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.45;
+    margin:0 0 10px;
+  }
+  .pip-opts{
+    display:flex;
+    gap:8px;
+  }
+  .pip-opt{
+    flex:1 1 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:10px 8px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#F7F9FB;
+    font-size:11.5px;
+    font-weight:800;
+    letter-spacing:.04em;
+    color:var(--muted);
+    cursor:pointer;
+    user-select:none;
+    transition:all .15s ease;
+  }
+  .pip-opt input{
+    width:14px;height:14px;margin:0;
+    accent-color:var(--brand);
+    cursor:pointer;
+  }
+  .pip-opt:has(input:checked){
+    background:#FFEBEE;
+    border-color:#EF9A9A;
+    color:var(--brand);
+  }
+  .pip-note{
+    margin:10px 0 0;
+    padding:9px 10px;
+    font-size:10px;
+    line-height:1.5;
+    color:var(--gold);
+    background:#F5F6F8;
+    border:1px dashed #D9E1E8;
+    border-radius:9px;
+  }
+
+  /* ---------- document checklist ---------- */
+  .doc-item{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:11px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .doc-item:last-child{border-bottom:0}
+  .doc-num{
+    flex:0 0 auto;
+    width:22px;height:22px;
+    border-radius:50%;
+    background:#FFEBEE;
+    border:1px solid #EF9A9A;
+    color:var(--brand);
+    font-size:10px;
+    font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:1px;
+  }
+  .doc-body{
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .doc-label{
+    display:flex;
+    align-items:flex-start;
+    gap:7px;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.45;
+    margin-bottom:8px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .doc-label input[type=checkbox]{
+    width:15px;height:15px;margin:2px 0 0;
+    accent-color:var(--brand);
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .doc-desc{
+    font-size:10px;
+    color:var(--muted);
+    line-height:1.5;
+    margin:0 0 8px;
+    padding-left:22px;
+  }
+  .doc-upload{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:9px;
+    border-radius:9px;
+    border:1px dashed #EF9A9A;
+    background:#FFEBEE;
+    color:var(--brand);
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:.03em;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transition:background .15s ease;
+  }
+  .doc-upload:active{background:#FFCDD2}
+  .doc-upload input[type=file]{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    opacity:0;cursor:pointer;
+  }
+  .doc-upload svg{
+    width:14px;height:14px;
+    fill:none;stroke:currentColor;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;
+  }
+  .doc-upload.has-file{
+    background:#FFEBEE;
+    border-style:solid;
+    border-color:#EF9A9A;
+  }
+
+  /* ---------- signature pad ---------- */
+  .sig-wrap{
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+    overflow:hidden;
+    position:relative;
+  }
+  .sig-wrap .sig-hint{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10.5px;
+    font-weight:600;
+    color:#B8C4CE;
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .sig-wrap.signed .sig-hint{opacity:0}
+  canvas.sigpad{
+    display:block;
+    width:100%;
+    height:120px;
+    touch-action:none;
+    cursor:crosshair;
+  }
+  .sig-actions{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:6px;
+  }
+  .sig-clear{
+    font-family:inherit;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--danger);
+    background:#fff5f1;
+    border:1px solid #f2d6ce;
+    border-radius:7px;
+    padding:6px 11px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .sig-clear:active{background:#ffe4da}
+
+  /* ---------- consent / notes ---------- */
+  .consent{
+    font-size:10.5px;
+    line-height:1.6;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+  .consent:last-child{margin-bottom:0}
+  .consent strong{color:var(--ink);font-weight:800}
+
+  .notes{
+    margin:8px 0 0;
+    padding-left:16px;
+    font-size:10.5px;
+    line-height:1.65;
+    color:var(--muted);
+  }
+  .notes li{margin-bottom:6px}
+  .notes li::marker{color:#EF9A9A}
+  .notes strong{color:var(--ink);font-weight:800}
+  .notes:first-child{margin-top:0}
+
+  /* ---------- official use badge ---------- */
+  .official{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 11px;
+    background:#F5F6F8;
+    border:1px dashed #D9E1E8;
+    border-radius:10px;
+    margin-bottom:12px;
+  }
+  .official svg{
+    width:15px;height:15px;
+    fill:none;stroke:var(--gold);stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;
+    flex:0 0 auto;
+  }
+  .official span{
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--gold);
+    line-height:1.4;
+  }
+
+  /* ---------- version footer ---------- */
+  .disclaimer{
+    margin:14px 4px 0;
+    font-size:9px;
+    line-height:1.5;
+    text-align:center;
+    color:#A0AEB9;
+  }
+  .disclaimer strong{color:#8492A0;font-weight:700}
+  /* ===== BOPEU app styling bridge ===== */
+  .topbar{
+    flex:0 0 auto;
+    background:#fff;
+    border-bottom:3px solid var(--brand);
+    color:var(--ink);
+    padding:12px 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .tb-home{display:flex;align-items:center}
+  .tb-logo{width:46px;height:46px;object-fit:contain}
+  .tb-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+  .tb-text .brand{margin:0;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800;opacity:1;line-height:1.2}
+  .tb-text h1{margin:0;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em;line-height:1.25}
+
+  .b-nav{flex:0 0 auto;display:flex;align-items:stretch;background:var(--brand);height:60px;z-index:20}
+  .b-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.03em}
+  .b-nav a img{width:19px;height:19px;object-fit:contain;opacity:.62;filter:brightness(0) invert(1)}
+  .b-nav a span{opacity:.85}
+
+  .form-logos{margin:18px 6px 2px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+  .form-logos img{height:44px;width:auto;object-fit:contain;max-width:46%}
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="topbar">
+    <a class="tb-home" href="index.html" title="Back to BOPEU app"><img class="tb-logo" src="../Assets/logo/bopeu_logo.webp" alt="BOPEU"></a>
+    <span class="tb-text">
+      <span class="brand">BLIC &middot; Babereki Life Insurance Company</span>
+      <h1>Know Your Customer — Individual</h1>
+    </span>
+  </div>
+
+  <div class="progressbar">
+    <div class="pb-top">
+      <span class="pb-lbl">Form completion</span>
+      <span class="pb-pct" id="pbPct">0%</span>
+    </div>
+    <div class="pb-track">
+      <div class="pb-fill" id="pbFill"></div>
+    </div>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ============ SECTION A: IDENTITY ============ -->
+    <section class="acc open">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section A &middot; Identity Details</span>
+          <span class="acc-sub">Name, date of birth, ID &amp; nationality</span>
+        </span>
+        <span class="acc-total muted" id="badge-a">0/6</span>
+      </button>
+      <div class="acc-body">
+        <div class="field mb">
+          <label>Title</label>
+          <select data-track>
+            <option value="">— Select title —</option>
+            <option>Mr</option>
+            <option>Mrs</option>
+            <option>Ms</option>
+            <option>Dr</option>
+            <option>Prof</option>
+          </select>
+        </div>
+        <div class="field mb">
+          <label>Name(s)</label>
+          <input type="text" placeholder="Full given name(s)" autocomplete="off" data-track>
+        </div>
+        <div class="field mb">
+          <label>Surname</label>
+          <input type="text" placeholder="Surname" autocomplete="off" data-track>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Date of Birth</label>
+            <input type="date" data-track>
+          </div>
+          <div class="field">
+            <label>ID / Passport No.</label>
+            <input type="text" inputmode="numeric" placeholder="Omang / Passport" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field">
+          <label>Nationality</label>
+          <input type="text" placeholder="e.g. Motswana" autocomplete="off" data-track>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION B: ADDRESS & CONTACT ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section B &middot; Address &amp; Contact</span>
+          <span class="acc-sub">Residence, phone, email &amp; employer</span>
+        </span>
+        <span class="acc-total muted" id="badge-b">0/12</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="subhead">Postal Address</div>
+        <div class="field">
+          <label>Postal Address</label>
+          <textarea placeholder="P.O. Box / Private Bag ..." autocomplete="off" data-track></textarea>
+        </div>
+
+        <div class="subhead">Physical Address</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Plot / Ward</label>
+            <input type="text" placeholder="Plot / Ward" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Town / Village</label>
+            <input type="text" placeholder="Town / Village" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field">
+          <label>Country</label>
+          <input type="text" placeholder="Country" autocomplete="off" data-track>
+        </div>
+
+        <div class="subhead">Permanent Address</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Plot / Ward</label>
+            <input type="text" placeholder="Plot / Ward" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Town / Village</label>
+            <input type="text" placeholder="Town / Village" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field mb">
+          <label>Country</label>
+          <input type="text" placeholder="Country" autocomplete="off" data-track>
+        </div>
+
+        <div class="subhead">Residence History</div>
+        <div class="field mb">
+          <label>Duration of Residence</label>
+          <input type="text" placeholder="e.g. 5 years" autocomplete="off" data-track>
+        </div>
+        <div class="field">
+          <label>Previous Residence (if less than 2 years)</label>
+          <textarea placeholder="State previous place of residence" autocomplete="off" data-track></textarea>
+        </div>
+
+        <div class="subhead">Contact Details</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Telephone Number</label>
+            <input type="tel" inputmode="tel" placeholder="+267 ..." autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Mobile Number</label>
+            <input type="tel" inputmode="tel" placeholder="+267 ..." autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" inputmode="email" placeholder="name@example.com" autocomplete="off" data-track>
+        </div>
+
+        <div class="subhead">Employment</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Employer</label>
+            <input type="text" placeholder="Employer" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Location of Work</label>
+            <input type="text" placeholder="Location" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field">
+          <label>Telephone (Work)</label>
+          <input type="tel" inputmode="tel" placeholder="+267 ..." autocomplete="off" data-track>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION C: BANKING ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section C &middot; Banking Details</span>
+          <span class="acc-sub">Account, source of funds &amp; business</span>
+        </span>
+        <span class="acc-total muted" id="badge-c">0/7</span>
+      </button>
+      <div class="acc-body">
+        <div class="field mb">
+          <label>Account Holder Name</label>
+          <input type="text" placeholder="As it appears on account" autocomplete="off" data-track>
+        </div>
+        <div class="field mb">
+          <label>Account Number</label>
+          <input type="text" inputmode="numeric" placeholder="Account number" autocomplete="off" data-track>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Bank Name</label>
+            <input type="text" placeholder="Bank" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Branch</label>
+            <input type="text" placeholder="Branch" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="field mb">
+          <label>Account Type</label>
+          <select data-track>
+            <option value="">— Select type —</option>
+            <option>Savings</option>
+            <option>Current / Cheque</option>
+            <option>Call</option>
+            <option>Fixed Deposit</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Source of Funds</label>
+          <select data-track>
+            <option value="">— Select source —</option>
+            <option>Salary</option>
+            <option>Business</option>
+            <option>Investments</option>
+            <option>Rental Income</option>
+            <option>Pension</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label>Nature of Business (if funds from sources other than salary)</label>
+          <textarea placeholder="State nature of business" autocomplete="off" data-track></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION D: AML / CFT & PIP ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section D &middot; AML / CFT &amp; PIP Status</span>
+          <span class="acc-sub">Anti-money laundering &amp; prominent person</span>
+        </span>
+        <span class="acc-total muted" id="badge-d">0/1</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="subhead">Anti-Money Laundering &amp; Counter Terrorist Financing</div>
+        <p class="consent">
+          In accordance with the <strong>Financial Intelligence Regulations</strong>, the certified documents listed
+          in the checklist below must be provided for verification.
+        </p>
+
+        <div class="subhead">Prominent Influential Person (PIP) Status</div>
+        <div class="pip-box">
+          <p class="pip-q">
+            Are you a prominent influential person, or related to / affiliated with a prominent influential person?
+          </p>
+          <div class="pip-opts">
+            <label class="pip-opt">
+              <input type="radio" name="pip" value="YES" data-track>
+              <span>YES</span>
+            </label>
+            <label class="pip-opt">
+              <input type="radio" name="pip" value="NO" data-track>
+              <span>NO</span>
+            </label>
+          </div>
+          <p class="pip-note">
+            If YES, please ensure you complete the PIP Annexure on Page 3.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CERTIFIED DOCUMENTS CHECKLIST ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Certified Documents Checklist</span>
+          <span class="acc-sub">Documents required for verification</span>
+        </span>
+        <span class="acc-total muted" id="badge-docs">0/4</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="doc-item">
+          <span class="doc-num">1</span>
+          <div class="doc-body">
+            <label class="doc-label">
+              <input type="checkbox" data-track data-doc="1">
+              <span>Identification Documents</span>
+            </label>
+            <p class="doc-desc">
+              Certified copy of Omang (ID) / Passport &amp; Work Permit for foreign nationals.
+            </p>
+            <label class="doc-upload">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>
+              <span data-upload-label>Attach file</span>
+              <input type="file" accept="image/*,.pdf" data-docfile="1">
+            </label>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <span class="doc-num">2</span>
+          <div class="doc-body">
+            <label class="doc-label">
+              <input type="checkbox" data-track data-doc="2">
+              <span>Source of Funds</span>
+            </label>
+            <p class="doc-desc">
+              Latest payslip (not older than 3 months) or bank statement (not older than 3 months).
+            </p>
+            <label class="doc-upload">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>
+              <span data-upload-label>Attach file</span>
+              <input type="file" accept="image/*,.pdf" data-docfile="2">
+            </label>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <span class="doc-num">3</span>
+          <div class="doc-body">
+            <label class="doc-label">
+              <input type="checkbox" data-track data-doc="3">
+              <span>Proof of Address</span>
+            </label>
+            <p class="doc-desc">
+              Utility bill (water/electricity/telephone), lease agreement, tribal authority letter,
+              employer letter, or affidavit (not older than 3 months).
+            </p>
+            <label class="doc-upload">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>
+              <span data-upload-label>Attach file</span>
+              <input type="file" accept="image/*,.pdf" data-docfile="3">
+            </label>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <span class="doc-num">4</span>
+          <div class="doc-body">
+            <label class="doc-label">
+              <input type="checkbox" data-track data-doc="4">
+              <span>Authority to Act</span>
+            </label>
+            <p class="doc-desc">
+              If acting on behalf of another, the ID card of that person and written authority to act on their behalf.
+            </p>
+            <label class="doc-upload">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>
+              <span data-upload-label>Attach file</span>
+              <input type="file" accept="image/*,.pdf" data-docfile="4">
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ SECTION E: DECLARATION ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section E &middot; Declaration</span>
+          <span class="acc-sub">Truthfulness, signature &amp; place</span>
+        </span>
+        <span class="acc-total muted" id="badge-e">0/7</span>
+      </button>
+      <div class="acc-body">
+
+        <p class="consent">
+          I hereby declare that the details furnished above are true and correct to the best of my knowledge
+          and belief, and I undertake to inform you of any changes therein immediately. In case any of the
+          above information is found to be false, untrue, misleading, or misrepresenting, I am aware that I
+          may be held liable for it.
+        </p>
+
+        <div class="field mb">
+          <label>Full Name</label>
+          <input type="text" placeholder="Full name" autocomplete="off" data-track>
+        </div>
+
+        <div class="field mb">
+          <label>Date</label>
+          <input type="date" data-track>
+        </div>
+
+        <div class="field mb">
+          <label>Signature</label>
+          <div class="sig-wrap" id="sigWrap">
+            <div class="sig-hint">Sign here with your finger</div>
+            <canvas class="sigpad" id="sigPad"></canvas>
+          </div>
+          <div class="sig-actions">
+            <button class="sig-clear" type="button" id="sigClear">Clear signature</button>
+          </div>
+        </div>
+
+        <div class="field mb">
+          <label>Place</label>
+          <input type="text" placeholder="Place" autocomplete="off" data-track>
+        </div>
+
+        <div class="subhead">Physical Address (Current)</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Plot / Ward</label>
+            <input type="text" placeholder="Plot / Ward" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Town / Village</label>
+            <input type="text" placeholder="Town / Village" autocomplete="off" data-track>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Country</label>
+            <input type="text" placeholder="Country" autocomplete="off" data-track>
+          </div>
+          <div class="field">
+            <label>Occupation</label>
+            <input type="text" placeholder="Occupation" autocomplete="off" data-track>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ SECTION F: STATUTORY CONSENT ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section F &middot; Statutory Consent</span>
+          <span class="acc-sub">Data protection &amp; AML/CFT retention</span>
+        </span>
+        <span class="acc-total muted">Info</span>
+      </button>
+      <div class="acc-body">
+        <p class="consent">
+          Pursuant to the <strong>Botswana Data Protection Act, 2024</strong>, I hereby explicitly consent to
+          <strong>Babereki Life Insurance Company (BLIC)</strong> collecting and processing my personal data for
+          the purpose of assessing this application and ensuring compliance with legal and regulatory obligations.
+        </p>
+        <p class="consent">
+          Furthermore, I acknowledge that in compliance with the <strong>Financial Intelligence Act, 2022</strong>,
+          BLIC is legally mandated to screen my details against national and international sanctions lists. I also
+          acknowledge that BLIC is required by law to retain these <strong>Customer Due Diligence (CDD)</strong>
+          records for the statutory <strong>AML/CFT retention period (up to 20 years)</strong>, which supersedes
+          general data deletion requests under the Data Protection Act.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ SECTION G: FOR OFFICIAL USE ============ -->
+    <section class="acc">
+      <button class="acc-head" type="button">
+        <span class="acc-left">
+          <span class="acc-title">Section G &middot; For Official Use</span>
+          <span class="acc-sub">Receiving officer &amp; authorisation</span>
+        </span>
+        <span class="acc-total muted">Office</span>
+      </button>
+      <div class="acc-body">
+
+        <div class="official">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="16" height="16" rx="2"/>
+            <path d="M8 10h8M8 14h5"/>
+          </svg>
+          <span>To be completed by receiving officer only</span>
+        </div>
+
+        <div class="field mb">
+          <label>Receiving Officer Name</label>
+          <input type="text" placeholder="Officer full name" autocomplete="off" data-track>
+        </div>
+
+        <div class="field mb">
+          <label>Date</label>
+          <input type="date" data-track>
+        </div>
+
+        <div class="field mb">
+          <label>Signature</label>
+          <div class="sig-wrap" id="sigWrapOff">
+            <div class="sig-hint">Officer signature</div>
+            <canvas class="sigpad" id="sigPadOff"></canvas>
+          </div>
+          <div class="sig-actions">
+            <button class="sig-clear" type="button" id="sigClearOff">Clear signature</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Place</label>
+          <input type="text" placeholder="Place" autocomplete="off" data-track>
+        </div>
+
+      </div>
+    </section>
+
+    <p class="disclaimer">
+      <strong>GROUP FUNERAL SCHEME CLAIM (INDIVIDUALS)</strong><br>
+      Ver: 1.0 of 2026 &middot; Page 1 – 2 of 2<br>
+      Underwritten by Babereki Life Insurance Company (BLIC)
+    </p>
+
+    <div class="form-logos">
+      <img src="../Assets/logo/forms/BLIC_logo.webp" alt="Babereki Life Insurance Company (BLIC)">
+    </div>
+
+  </div>
+
+  <div class="b-nav">
+    <a href="index.html?tab=0"><img src="../Assets/icons/timeline_icon.webp" alt="Timeline"><span>Timeline</span></a>
+    <a href="index.html?tab=1"><img src="../Assets/icons/notices_icon.webp" alt="Updates"><span>Updates</span></a>
+    <a href="index.html?tab=2"><img src="../Assets/icons/benefits_icon.webp" alt="Benefits"><span>Benefits</span></a>
+    <a href="index.html?tab=3"><img src="../Assets/icons/claims_icon.webp" alt="Card"><span>Card</span></a>
+    <a href="index.html?tab=4"><img src="../Assets/icons/menu_icon.webp" alt="Help"><span>Help</span></a>
+  </div>
+
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ==================== PROGRESS TRACKING ==================== */
+  var tracked = document.querySelectorAll("[data-track]");
+
+  function countFilled() {
+    var filled = 0;
+    tracked.forEach(function (el) {
+      var type = el.type;
+      if (type === "radio") {
+        if (document.querySelector('input[name="' + el.name + '"]:checked')) {
+          /* count radio group once */
+        }
+      }
+    });
+
+    /* count radios by group */
+    var radioGroups = {};
+    tracked.forEach(function (el) {
+      if (el.type !== "radio") return;
+      radioGroups[el.name] = false;
+    });
+    tracked.forEach(function (el) {
+      if (el.type !== "radio") return;
+      if (document.querySelector('input[name="' + el.name + '"]:checked')) {
+        radioGroups[el.name] = true;
+      }
+    });
+    var radioFilled = 0, radioTotal = 0;
+    Object.keys(radioGroups).forEach(function (k) {
+      radioTotal++;
+      if (radioGroups[k]) radioFilled++;
+    });
+
+    /* non-radio */
+    var nonRadioFilled = 0, nonRadioTotal = 0;
+    tracked.forEach(function (el) {
+      if (el.type === "radio") return;
+      nonRadioTotal++;
+      if (el.type === "checkbox") {
+        if (el.checked) nonRadioFilled++;
+      } else if (el.value && el.value.trim() !== "") {
+        nonRadioFilled++;
+      }
+    });
+
+    return {
+      filled: nonRadioFilled + radioFilled,
+      total: nonRadioTotal + radioTotal
+    };
+  }
+
+  function updateProgress() {
+    var c = countFilled();
+    var pct = c.total ? Math.round((c.filled / c.total) * 100) : 0;
+
+    document.getElementById("pbPct").textContent = pct + "%";
+    document.getElementById("pbFill").style.width = pct + "%";
+
+    updateBadge("a", "SECTION_A");
+    updateBadge("b", "SECTION_B");
+    updateBadge("c", "SECTION_C");
+    updateBadge("d", "SECTION_D");
+    updateBadge("docs", "DOCS");
+    updateBadge("e", "SECTION_E");
+  }
+
+  /* per-section badges */
+  function sectionStats(sectionEl) {
+    var list = sectionEl.querySelectorAll("[data-track]");
+    var radioSeen = {};
+    var filled = 0, total = 0;
+
+    list.forEach(function (el) {
+      if (el.type === "radio") {
+        if (radioSeen[el.name]) return;
+        radioSeen[el.name] = true;
+        total++;
+        if (document.querySelector('input[name="' + el.name + '"]:checked')) filled++;
+      } else {
+        total++;
+        if (el.type === "checkbox") {
+          if (el.checked) filled++;
+        } else if (el.value && el.value.trim() !== "") {
+          filled++;
+        }
+      }
+    });
+    return { filled: filled, total: total };
+  }
+
+  function updateBadge(id, selector) {
+    var el = document.getElementById("badge-" + id);
+    if (!el) return;
+    var section = el.closest(".acc");
+    if (!section) return;
+    var s = sectionStats(section);
+    el.textContent = s.filled + "/" + s.total;
+  }
+
+  /* ==================== SIGNATURE PADS ==================== */
+  function setupSignaturePad(canvasId, wrapId, clearId) {
+    var canvas = document.getElementById(canvasId);
+    var wrap = document.getElementById(wrapId);
+    var clear = document.getElementById(clearId);
+    if (!canvas || !wrap) return;
+
+    var ctx = canvas.getContext("2d");
+    var drawing = false;
+    var dirty = false;
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      /* preserve existing drawing on resize */
+      var prev = dirty ? canvas.toDataURL() : null;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#1A202C";
+      if (prev) {
+        var img = new Image();
+        img.onload = function () {
+          ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        };
+        img.src = prev;
+      }
+    }
+
+    function point(evt) {
+      var rect = canvas.getBoundingClientRect();
+      var src = evt.touches ? evt.touches[0] : evt;
+      return {
+        x: src.clientX - rect.left,
+        y: src.clientY - rect.top
+      };
+    }
+
+    function start(evt) {
+      evt.preventDefault();
+      drawing = true;
+      dirty = true;
+      wrap.classList.add("signed");
+      var p = point(evt);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+    function move(evt) {
+      if (!drawing) return;
+      evt.preventDefault();
+      var p = point(evt);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+    function end(evt) {
+      if (!drawing) return;
+      drawing = false;
+      if (evt) evt.preventDefault();
+    }
+
+    canvas.addEventListener("mousedown", start);
+    canvas.addEventListener("mousemove", move);
+    canvas.addEventListener("mouseup", end);
+    canvas.addEventListener("mouseleave", end);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove", move, { passive: false });
+    canvas.addEventListener("touchend", end, { passive: false });
+    canvas.addEventListener("touchcancel", end, { passive: false });
+
+    if (clear) {
+      clear.addEventListener("click", function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        dirty = false;
+        wrap.classList.remove("signed");
+        updateProgress();
+      });
+    }
+
+    /* mark signature as part of progress when signed */
+    var observer = new MutationObserver(function () { updateProgress(); });
+    observer.observe(wrap, { attributes: true, attributeFilter: ["class"] });
+
+    window.addEventListener("resize", resize);
+    resize();
+  }
+
+  /* ==================== DOCUMENT UPLOADS ==================== */
+  document.querySelectorAll("[data-docfile]").forEach(function (input) {
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var label = input.parentElement.querySelector("[data-upload-label]");
+      if (label) {
+        var name = file.name.length > 22 ? file.name.slice(0, 19) + "…" : file.name;
+        label.textContent = name;
+      }
+      input.parentElement.classList.add("has-file");
+    });
+  });
+
+  /* ==================== EVENT DELEGATION ==================== */
+  var scroll = document.getElementById("scroll");
+
+  scroll.addEventListener("click", function (e) {
+    var head = e.target.closest(".acc-head");
+    if (head) {
+      head.parentElement.classList.toggle("open");
+    }
+  });
+
+  /* update progress on any change / input */
+  scroll.addEventListener("input", updateProgress);
+  scroll.addEventListener("change", updateProgress);
+
+  /* ==================== BOOT ==================== */
+  setupSignaturePad("sigPad", "sigWrap", "sigClear");
+  setupSignaturePad("sigPadOff", "sigWrapOff", "sigClearOff");
+  updateProgress();
+
+})();
+</script>
+</body>
+</html>
